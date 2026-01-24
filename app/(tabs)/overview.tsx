@@ -1,11 +1,15 @@
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
 import { Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function OverviewTab() {
+  const tasks = useQuery(api.tasks.get);
   return (
     <ScreenWrapper>
-      <Text className="text-text-primary text-xl">Overview Tab</Text>
+      {tasks?.map(({ _id, text }) => (
+        <Text key={_id}>{text}</Text>
+      ))}
     </ScreenWrapper>
   );
 }
