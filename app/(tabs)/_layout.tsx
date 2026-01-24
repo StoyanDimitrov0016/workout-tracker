@@ -1,23 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
+import { useColorScheme } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
-import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme() ?? "dark";
-  const theme = Colors[colorScheme];
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarActiveTintColor: theme.tint,
-        tabBarInactiveTintColor: theme.tabIconDefault,
-        tabBarStyle: { backgroundColor: theme.background },
+        tabBarActiveTintColor: isDark ? "rgb(248 113 113)" : "rgb(239 68 68)", // primary
+        tabBarInactiveTintColor: isDark ? "rgb(107 114 128)" : "rgb(156 163 175)", // text-tertiary
+        tabBarStyle: {
+          backgroundColor: isDark ? "rgb(17 24 39)" : "rgb(255 255 255)",
+          borderTopColor: isDark ? "rgb(55 65 81)" : "rgb(229 231 235)",
+          borderTopWidth: 1,
+        },
       }}
     >
       <Tabs.Screen
@@ -25,7 +28,7 @@ export default function TabLayout() {
         options={{
           title: "Overview",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
+            <Ionicons name={focused ? "grid" : "grid-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -35,7 +38,7 @@ export default function TabLayout() {
         options={{
           title: "Measurements",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "scale" : "scale-outline"} size={size} color={color} />
+            <Ionicons name={focused ? "body" : "body-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -43,11 +46,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="start-session"
         options={{
-          title: "Start",
+          title: "Workout",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "play-circle" : "play-circle-outline"}
-              size={size}
+              name={focused ? "barbell" : "barbell-outline"}
+              size={size + 4}
               color={color}
             />
           ),
@@ -60,7 +63,7 @@ export default function TabLayout() {
           title: "Stats",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "stats-chart" : "stats-chart-outline"}
+              name={focused ? "analytics" : "analytics-outline"}
               size={size}
               color={color}
             />
@@ -73,7 +76,7 @@ export default function TabLayout() {
         options={{
           title: "Plan",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "list" : "list-outline"} size={size} color={color} />
+            <Ionicons name={focused ? "calendar" : "calendar-outline"} size={size} color={color} />
           ),
         }}
       />
