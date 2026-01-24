@@ -1,0 +1,14 @@
+node_modules
+.expo
+.expo-shared
+dist
+build
+coverage
+android
+ios
+
+# Expo web / bundler outputs if you have them
+web-build
+
+# Logs
+*.log
