@@ -9,7 +9,7 @@ export default function MeasurementsWeightScreen() {
   return (
     <ScreenWrapper>
       <View className="gap-6 py-4">
-        <Text className="text-text-primary text-2xl font-semibold">Measurements</Text>
+        <Text className="text-2xl font-semibold text-text-primary">Measurements</Text>
         <MeasurementsSwitch />
         <WeightEntryForm />
         <WeightEntryPreview />

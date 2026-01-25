@@ -17,11 +17,11 @@ export default function MeasurementsCircumferencesScreen() {
   return (
     <ScreenWrapper>
       <View className="gap-6 py-4">
-        <Text className="text-text-primary text-2xl font-semibold">Measurements</Text>
+        <Text className="text-2xl font-semibold text-text-primary">Measurements</Text>
         <MeasurementsSwitch />
         <CircumferenceEntryForm />
-        <View className="rounded-2xl border border-border bg-card p-4 gap-3">
-          <Text className="text-text-primary text-lg font-semibold">Latest snapshot</Text>
+        <View className="gap-3 rounded-2xl border border-border bg-card p-4">
+          <Text className="text-lg font-semibold text-text-primary">Latest snapshot</Text>
           {latestEntry ? (
             <View className="gap-2">
               <View className="flex-row justify-between">
@@ -43,13 +43,15 @@ export default function MeasurementsCircumferencesScreen() {
               <View className="flex-row justify-between">
                 <Text className="text-text-secondary">Upper arm (L/R)</Text>
                 <Text className="text-text-primary">
-                  {formatValue(latestEntry.upperArmLeftCm)} / {formatValue(latestEntry.upperArmRightCm)} cm
+                  {formatValue(latestEntry.upperArmLeftCm)} /{" "}
+                  {formatValue(latestEntry.upperArmRightCm)} cm
                 </Text>
               </View>
               <View className="flex-row justify-between">
                 <Text className="text-text-secondary">Thigh (L/R)</Text>
                 <Text className="text-text-primary">
-                  {formatValue(latestEntry.thighLeftCm)} / {formatValue(latestEntry.thighRightCm)} cm
+                  {formatValue(latestEntry.thighLeftCm)} / {formatValue(latestEntry.thighRightCm)}{" "}
+                  cm
                 </Text>
               </View>
               <View className="flex-row justify-between">
@@ -60,7 +62,7 @@ export default function MeasurementsCircumferencesScreen() {
               </View>
             </View>
           ) : (
-            <Text className="text-text-tertiary text-sm">
+            <Text className="text-sm text-text-tertiary">
               Your latest circumference measurements will appear here.
             </Text>
           )}

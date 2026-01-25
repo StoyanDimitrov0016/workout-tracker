@@ -4,7 +4,7 @@ import { Text } from "react-native";
 export default function TrainingSplitTab() {
   return (
     <ScreenWrapper>
-      <Text className="text-text-primary text-xl">Training Split Tab</Text>
+      <Text className="text-xl text-text-primary">Training Split Tab</Text>
     </ScreenWrapper>
   );
 }

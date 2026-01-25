@@ -75,12 +75,12 @@ const defaultValues = fieldNames.reduce((acc, key) => {
 }, {} as CircumferenceFormValues);
 
 function FieldLabel({ text }: { text: string }) {
-  return <Text className="text-text-secondary text-xs">{text}</Text>;
+  return <Text className="text-xs text-text-secondary">{text}</Text>;
 }
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
-  return <Text className="text-status-error text-xs">{message}</Text>;
+  return <Text className="text-xs text-status-error">{message}</Text>;
 }
 
 export function CircumferenceEntryForm() {
@@ -113,7 +113,7 @@ export function CircumferenceEntryForm() {
 
   return (
     <View className="gap-4 rounded-2xl border border-border bg-surface p-4">
-      <Text className="text-text-primary text-lg font-semibold">Log circumferences</Text>
+      <Text className="text-lg font-semibold text-text-primary">Log circumferences</Text>
 
       <View className="gap-3">
         <View className="flex-row gap-3">
@@ -196,7 +196,7 @@ export function CircumferenceEntryForm() {
       </View>
 
       <View className="gap-3">
-        <Text className="text-text-secondary text-xs">Arms</Text>
+        <Text className="text-xs text-text-secondary">Arms</Text>
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
             <FieldLabel text={labels.upperArmLeftCm} />
@@ -238,7 +238,7 @@ export function CircumferenceEntryForm() {
       </View>
 
       <View className="gap-3">
-        <Text className="text-text-secondary text-xs">Legs</Text>
+        <Text className="text-xs text-text-secondary">Legs</Text>
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
             <FieldLabel text={labels.thighLeftCm} />
@@ -280,7 +280,7 @@ export function CircumferenceEntryForm() {
       </View>
 
       <View className="gap-3">
-        <Text className="text-text-secondary text-xs">Calves</Text>
+        <Text className="text-xs text-text-secondary">Calves</Text>
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
             <FieldLabel text={labels.calfLeftCm} />
