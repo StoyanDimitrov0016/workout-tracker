@@ -9,8 +9,10 @@
  */
 
 import type * as auth from "../auth.js";
-import type * as circumferenceEntries from "../circumferenceEntries.js";
-import type * as weightEntries from "../weightEntries.js";
+import type * as circumferences from "../circumferences.js";
+import type * as exercises from "../exercises.js";
+import type * as muscles from "../muscles.js";
+import type * as weights from "../weights.js";
 
 import type {
   ApiFromModules,
@@ -20,8 +22,10 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
-  circumferenceEntries: typeof circumferenceEntries;
-  weightEntries: typeof weightEntries;
+  circumferences: typeof circumferences;
+  exercises: typeof exercises;
+  muscles: typeof muscles;
+  weights: typeof weights;
 }>;
 
 /**
