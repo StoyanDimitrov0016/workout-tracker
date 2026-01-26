@@ -1,0 +1,1 @@
+﻿export const CIRCUMFERENCE_PREVIEW_LIMIT = 5;

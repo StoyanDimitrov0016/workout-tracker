@@ -1,8 +1,10 @@
 import Slider from "@react-native-community/slider";
 import { Text, View } from "react-native";
 
-const MIN_DELTA_KG = -1.5;
-const MAX_DELTA_KG = 1.5;
+import {
+  MAX_WEIGHT_DELTA_KG,
+  MIN_WEIGHT_DELTA_KG,
+} from "@/features/measurements/constants/weight";
 
 interface WeightEntryAdjusterProps {
   baseWeightKg: number | null;
@@ -34,8 +36,8 @@ export function WeightEntryAdjuster({
         <View className="flex-1">
           <Slider
             value={deltaKg}
-            minimumValue={MIN_DELTA_KG}
-            maximumValue={MAX_DELTA_KG}
+            minimumValue={MIN_WEIGHT_DELTA_KG}
+            maximumValue={MAX_WEIGHT_DELTA_KG}
             step={0.1}
             onValueChange={onDeltaChange}
             disabled={!isEnabled}
