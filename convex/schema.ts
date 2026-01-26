@@ -2,11 +2,12 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  weightEntries: defineTable({
+  weights: defineTable({
     userToken: v.string(),
     weightKg: v.number(),
-  }).index("by_user_creationTime", ["userToken"]),
-  circumferenceEntries: defineTable({
+  }).index("by_user", ["userToken"]),
+
+  circumferences: defineTable({
     userToken: v.string(),
     neckCm: v.number(),
     chestCm: v.number(),
@@ -14,9 +15,24 @@ export default defineSchema({
     hipsCm: v.number(),
     upperArmLeftCm: v.number(),
     upperArmRightCm: v.number(),
+    forearmLeftCm: v.number(),
+    forearmRightCm: v.number(),
     thighLeftCm: v.number(),
     thighRightCm: v.number(),
     calfLeftCm: v.number(),
     calfRightCm: v.number(),
-  }).index("by_user_creationTime", ["userToken"]),
+  }).index("by_user", ["userToken"]),
+
+  muscles: defineTable({
+    slug: v.string(),
+    name: v.string(),
+    sortOrder: v.number(),
+  }).index("by_slug", ["slug"]),
+
+  exercises: defineTable({
+    name: v.string(),
+    muscleId: v.id("muscles"),
+  })
+    .index("by_name", ["name"])
+    .searchIndex("search_name", { searchField: "name" }),
 });
