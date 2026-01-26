@@ -1,8 +1,8 @@
 import { query } from "./_generated/server";
 
-export const get = query({
+export const list = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("tasks").collect();
+    return await ctx.db.query("exercises").collect();
   },
 });

@@ -56,8 +56,8 @@ const weightEntrySchema = z.object({
 type WeightEntryFormValues = z.infer<typeof weightEntrySchema>;
 
 export function WeightEntryForm() {
-  const addWeightEntry = useMutation(api.weightEntries.add);
-  const recentEntries = useQuery(api.weightEntries.listRecent, { limit: 1 });
+  const addWeightEntry = useMutation(api.weights.create);
+  const recentEntries = useQuery(api.weights.listRecent, { limit: 1 });
   const latestWeightKg = recentEntries?.[0]?.weightKg ?? null;
 
   const {

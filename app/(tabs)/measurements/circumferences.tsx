@@ -1,5 +1,5 @@
-import { View, Text } from "react-native";
 import { useQuery } from "convex/react";
+import { Text, View } from "react-native";
 
 import { CircumferenceEntryForm } from "@/components/measurements/circumference-entry-form";
 import { MeasurementsSwitch } from "@/components/measurements/measurements-switch";
@@ -12,7 +12,7 @@ function formatValue(value: number) {
 }
 
 export default function MeasurementsCircumferencesScreen() {
-  const latestEntry = useQuery(api.circumferenceEntries.getLatest);
+  const latestEntry = useQuery(api.circumferences.mostRecent);
 
   return (
     <ScreenWrapper>

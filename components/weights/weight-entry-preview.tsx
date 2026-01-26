@@ -8,8 +8,8 @@ import { api } from "@/convex/_generated/api";
 const PREVIEW_LIMIT = 5;
 
 export function WeightEntryPreview() {
-  const entries = useQuery(api.weightEntries.listRecent, { limit: PREVIEW_LIMIT });
-  const removeLatest = useMutation(api.weightEntries.removeLatest);
+  const entries = useQuery(api.weights.listRecent, { limit: PREVIEW_LIMIT });
+  const removeLatest = useMutation(api.weights.remove);
   const [isRemoving, setIsRemoving] = useState(false);
   const latestEntryId = useMemo(() => entries?.[0]?._id ?? null, [entries]);
   const canUndo = Boolean(latestEntryId) && !isRemoving;
@@ -20,7 +20,7 @@ export function WeightEntryPreview() {
     setIsRemoving(true);
 
     try {
-      await removeLatest({});
+      await removeLatest({ id: latestEntryId });
     } finally {
       setIsRemoving(false);
     }
