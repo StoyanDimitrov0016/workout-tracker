@@ -10,7 +10,6 @@
 
 import type * as auth from "../auth.js";
 import type * as circumferenceEntries from "../circumferenceEntries.js";
-import type * as tasks from "../tasks.js";
 import type * as weightEntries from "../weightEntries.js";
 
 import type {
@@ -22,7 +21,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   circumferenceEntries: typeof circumferenceEntries;
-  tasks: typeof tasks;
   weightEntries: typeof weightEntries;
 }>;
 
