@@ -1,9 +1,9 @@
-import { useMemo } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "convex/react";
+import { useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { Pressable, Text, TextInput, View } from "react-native";
+import { z } from "zod";
 
 import { api } from "@/convex/_generated/api";
 
@@ -16,6 +16,8 @@ const fieldNames = [
   "upperArmRightCm",
   "thighLeftCm",
   "thighRightCm",
+  "forearmLeftCm",
+  "forearmRightCm",
   "calfLeftCm",
   "calfRightCm",
 ] as const;
@@ -31,6 +33,8 @@ const labels: Record<CircumferenceField, string> = {
   upperArmRightCm: "Upper arm R (cm)",
   thighLeftCm: "Thigh L (cm)",
   thighRightCm: "Thigh R (cm)",
+  forearmLeftCm: "Forearm L (cm)",
+  forearmRightCm: "Forearm R (cm)",
   calfLeftCm: "Calf L (cm)",
   calfRightCm: "Calf R (cm)",
 };
@@ -45,6 +49,8 @@ const circumferenceSchema = z
     upperArmRightCm: z.string().min(1, "Required"),
     thighLeftCm: z.string().min(1, "Required"),
     thighRightCm: z.string().min(1, "Required"),
+    forearmLeftCm: z.string().min(1, "Required"),
+    forearmRightCm: z.string().min(1, "Required"),
     calfLeftCm: z.string().min(1, "Required"),
     calfRightCm: z.string().min(1, "Required"),
   })
@@ -84,7 +90,7 @@ function FieldError({ message }: { message?: string }) {
 }
 
 export function CircumferenceEntryForm() {
-  const addCircumferenceEntry = useMutation(api.circumferenceEntries.add);
+  const addCircumferenceEntry = useMutation(api.circumferences.create);
   const {
     control,
     handleSubmit,
@@ -233,6 +239,44 @@ export function CircumferenceEntryForm() {
               )}
             />
             <FieldError message={errors.upperArmRightCm?.message} />
+          </View>
+        </View>
+        <View className="flex-row gap-3">
+          <View className="flex-1 gap-2">
+            <FieldLabel text={labels.forearmLeftCm} />
+            <Controller
+              control={control}
+              name="forearmLeftCm"
+              render={({ field: { onBlur, onChange, value } }) => (
+                <TextInput
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  keyboardType="decimal-pad"
+                  className={inputClassName}
+                  placeholderTextColor="#9ca3af"
+                />
+              )}
+            />
+            <FieldError message={errors.forearmLeftCm?.message} />
+          </View>
+          <View className="flex-1 gap-2">
+            <FieldLabel text={labels.forearmRightCm} />
+            <Controller
+              control={control}
+              name="forearmRightCm"
+              render={({ field: { onBlur, onChange, value } }) => (
+                <TextInput
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  keyboardType="decimal-pad"
+                  className={inputClassName}
+                  placeholderTextColor="#9ca3af"
+                />
+              )}
+            />
+            <FieldError message={errors.forearmRightCm?.message} />
           </View>
         </View>
       </View>
