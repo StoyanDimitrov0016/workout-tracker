@@ -3,79 +3,18 @@ import { useMutation } from "convex/react";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
-import { z } from "zod";
 
 import { api } from "@/convex/_generated/api";
+import {
+  circumferenceFieldNames,
+  circumferenceLabels,
+} from "@/features/measurements/constants/circumference-fields";
+import { circumferenceSchema } from "@/features/measurements/schemas/circumference-schema";
+import type { CircumferenceFormValues } from "@/features/measurements/schemas/circumference-schema";
+import type { CircumferenceMutationInput } from "@/features/measurements/types/circumference";
+import { parseMeasurementInput } from "@/features/measurements/utils/parse-measurement-input";
 
-const fieldNames = [
-  "neckCm",
-  "chestCm",
-  "waistCm",
-  "hipsCm",
-  "upperArmLeftCm",
-  "upperArmRightCm",
-  "thighLeftCm",
-  "thighRightCm",
-  "forearmLeftCm",
-  "forearmRightCm",
-  "calfLeftCm",
-  "calfRightCm",
-] as const;
-
-type CircumferenceField = (typeof fieldNames)[number];
-
-const labels: Record<CircumferenceField, string> = {
-  neckCm: "Neck (cm)",
-  chestCm: "Chest (cm)",
-  waistCm: "Waist (cm)",
-  hipsCm: "Hips (cm)",
-  upperArmLeftCm: "Upper arm L (cm)",
-  upperArmRightCm: "Upper arm R (cm)",
-  thighLeftCm: "Thigh L (cm)",
-  thighRightCm: "Thigh R (cm)",
-  forearmLeftCm: "Forearm L (cm)",
-  forearmRightCm: "Forearm R (cm)",
-  calfLeftCm: "Calf L (cm)",
-  calfRightCm: "Calf R (cm)",
-};
-
-const circumferenceSchema = z
-  .object({
-    neckCm: z.string().min(1, "Required"),
-    chestCm: z.string().min(1, "Required"),
-    waistCm: z.string().min(1, "Required"),
-    hipsCm: z.string().min(1, "Required"),
-    upperArmLeftCm: z.string().min(1, "Required"),
-    upperArmRightCm: z.string().min(1, "Required"),
-    thighLeftCm: z.string().min(1, "Required"),
-    thighRightCm: z.string().min(1, "Required"),
-    forearmLeftCm: z.string().min(1, "Required"),
-    forearmRightCm: z.string().min(1, "Required"),
-    calfLeftCm: z.string().min(1, "Required"),
-    calfRightCm: z.string().min(1, "Required"),
-  })
-  .superRefine((values, ctx) => {
-    fieldNames.forEach((name) => {
-      const raw = values[name];
-      const normalized = raw.replace(",", ".").trim();
-      const parsed = Number.parseFloat(normalized);
-      if (Number.isNaN(parsed) || parsed <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [name],
-          message: "Enter a valid number",
-        });
-      }
-    });
-  });
-
-type CircumferenceFormValues = z.infer<typeof circumferenceSchema>;
-
-type CircumferenceMutationInput = {
-  [Key in CircumferenceField]: number;
-};
-
-const defaultValues = fieldNames.reduce((acc, key) => {
+const defaultValues = circumferenceFieldNames.reduce((acc, key) => {
   acc[key] = "";
   return acc;
 }, {} as CircumferenceFormValues);
@@ -102,9 +41,9 @@ export function CircumferenceEntryForm() {
   });
 
   const onSubmit = async (values: CircumferenceFormValues) => {
-    const parsedValues = fieldNames.reduce((acc, key) => {
-      const normalized = values[key].replace(",", ".").trim();
-      acc[key] = Number.parseFloat(normalized);
+    const parsedValues = circumferenceFieldNames.reduce((acc, key) => {
+      const { value } = parseMeasurementInput(values[key]);
+      acc[key] = value;
       return acc;
     }, {} as CircumferenceMutationInput);
 
@@ -124,7 +63,7 @@ export function CircumferenceEntryForm() {
       <View className="gap-3">
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.neckCm} />
+            <FieldLabel text={circumferenceLabels.neckCm} />
             <Controller
               control={control}
               name="neckCm"
@@ -142,7 +81,7 @@ export function CircumferenceEntryForm() {
             <FieldError message={errors.neckCm?.message} />
           </View>
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.chestCm} />
+            <FieldLabel text={circumferenceLabels.chestCm} />
             <Controller
               control={control}
               name="chestCm"
@@ -163,7 +102,7 @@ export function CircumferenceEntryForm() {
 
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.waistCm} />
+            <FieldLabel text={circumferenceLabels.waistCm} />
             <Controller
               control={control}
               name="waistCm"
@@ -181,7 +120,7 @@ export function CircumferenceEntryForm() {
             <FieldError message={errors.waistCm?.message} />
           </View>
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.hipsCm} />
+            <FieldLabel text={circumferenceLabels.hipsCm} />
             <Controller
               control={control}
               name="hipsCm"
@@ -205,7 +144,7 @@ export function CircumferenceEntryForm() {
         <Text className="text-xs text-text-secondary">Arms</Text>
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.upperArmLeftCm} />
+            <FieldLabel text={circumferenceLabels.upperArmLeftCm} />
             <Controller
               control={control}
               name="upperArmLeftCm"
@@ -223,7 +162,7 @@ export function CircumferenceEntryForm() {
             <FieldError message={errors.upperArmLeftCm?.message} />
           </View>
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.upperArmRightCm} />
+            <FieldLabel text={circumferenceLabels.upperArmRightCm} />
             <Controller
               control={control}
               name="upperArmRightCm"
@@ -243,7 +182,7 @@ export function CircumferenceEntryForm() {
         </View>
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.forearmLeftCm} />
+            <FieldLabel text={circumferenceLabels.forearmLeftCm} />
             <Controller
               control={control}
               name="forearmLeftCm"
@@ -261,7 +200,7 @@ export function CircumferenceEntryForm() {
             <FieldError message={errors.forearmLeftCm?.message} />
           </View>
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.forearmRightCm} />
+            <FieldLabel text={circumferenceLabels.forearmRightCm} />
             <Controller
               control={control}
               name="forearmRightCm"
@@ -285,7 +224,7 @@ export function CircumferenceEntryForm() {
         <Text className="text-xs text-text-secondary">Legs</Text>
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.thighLeftCm} />
+            <FieldLabel text={circumferenceLabels.thighLeftCm} />
             <Controller
               control={control}
               name="thighLeftCm"
@@ -303,7 +242,7 @@ export function CircumferenceEntryForm() {
             <FieldError message={errors.thighLeftCm?.message} />
           </View>
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.thighRightCm} />
+            <FieldLabel text={circumferenceLabels.thighRightCm} />
             <Controller
               control={control}
               name="thighRightCm"
@@ -327,7 +266,7 @@ export function CircumferenceEntryForm() {
         <Text className="text-xs text-text-secondary">Calves</Text>
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.calfLeftCm} />
+            <FieldLabel text={circumferenceLabels.calfLeftCm} />
             <Controller
               control={control}
               name="calfLeftCm"
@@ -345,7 +284,7 @@ export function CircumferenceEntryForm() {
             <FieldError message={errors.calfLeftCm?.message} />
           </View>
           <View className="flex-1 gap-2">
-            <FieldLabel text={labels.calfRightCm} />
+            <FieldLabel text={circumferenceLabels.calfRightCm} />
             <Controller
               control={control}
               name="calfRightCm"

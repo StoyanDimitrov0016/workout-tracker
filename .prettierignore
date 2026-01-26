@@ -12,3 +12,5 @@ web-build
 
 # Logs
 *.log
+
+_generated

@@ -1,15 +1,10 @@
 import { Text, View } from "react-native";
 
+import { formatDateTime } from "@/features/measurements/utils/format-date-time";
+
 interface WeightEntryItemProps {
   weightKg: number;
   createdAt: number;
-}
-
-function formatDateTime(timestamp: number) {
-  const date = new Date(timestamp);
-  const dateLabel = date.toLocaleDateString();
-  const timeLabel = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  return `${dateLabel} - ${timeLabel}`;
 }
 
 export function WeightEntryItem({ weightKg, createdAt }: WeightEntryItemProps) {

@@ -1,38 +1,38 @@
-# Repository Guidelines
+﻿# Repository Guidelines
 
 ## Project Structure & Module Organization
 
-- `app/` holds the Expo Router screens and layouts (e.g., `(tabs)/`, `(auth)/`).
-- `components/`, `hooks/`, and `constants/` contain shared UI pieces, hooks, and app constants.
-- `assets/` stores images and other static resources.
-- `convex/` contains backend schema/functions and generated client types (`_generated/`).
-- Config and styling live at the repo root (`app.json`, `tailwind.config.js`, `global.css`).
+- `app/` contains Expo Router screens and layouts, including route groups like `(tabs)/` and `(auth)/`.
+- Shared UI, hooks, and constants live in `components/`, `hooks/`, and `constants/`.
+- `features/` holds domain-specific modules and screens.
+- `assets/` stores images and other static files.
+- `convex/` contains backend schema/functions and generated client types in `_generated/`.
+- Root config and styling files include `app.json`, `global.css`, `tailwind.config.js`, and `eslint.config.js`.
 
 ## Build, Test, and Development Commands
 
-- `npm install` installs dependencies.
-- `npm run start` starts the Expo dev server.
-- `npm run android` / `npm run ios` / `npm run web` run the app on specific targets.
-- `npm run lint` runs ESLint (Expo config).
-- `npm run format` / `npm run format:check` format or validate formatting with Prettier.
-- `npm run reset-project` resets the starter scaffold (see `scripts/reset-project.js`).
+- `npm install`: install dependencies.
+- `npm run start`: start the Expo dev server.
+- `npm run android` / `npm run ios` / `npm run web`: run the app on a specific platform.
+- `npm run lint`: run ESLint with the Expo config.
+- `npm run format` / `npm run format:check`: format or validate formatting with Prettier.
+- `npm run reset-project`: reset the starter scaffold (see `scripts/reset-project.js`).
 
 ## Coding Style & Naming Conventions
 
 - TypeScript + React Native (Expo). Use 2-space indentation and semicolons.
-- Prettier is the source of truth (see `.prettierrc`); run `npm run format` before PRs.
-- Tailwind via NativeWind; prefer `className` for styling and keep utility order stable.
-- File and folder names are lowercase with hyphens or parentheses for route groups (Expo Router).
+- Prettier is the source of truth (`.prettierrc`); run formatting before PRs.
+- Tailwind via NativeWind; prefer `className` and keep utility order stable.
+- File and folder names are lowercase with hyphens; route groups use parentheses.
 
 ## Testing Guidelines
 
-- No test runner is configured in `package.json` yet.
-- If you add tests, document the commands here and align file naming with the chosen tool�s defaults.
+- No test runner is configured yet. If you add one, document the command(s) here and follow the tool’s default naming patterns (for example, `*.test.ts` or `*.spec.ts`).
 
 ## Commit & Pull Request Guidelines
 
-- Follow the existing commit style: `<type>: <short description>` (e.g., `feat: add tabs`, `deps: add Convex`, `chore: update config`).
-- Keep commits focused and avoid mixing refactors with feature changes.
+- Commit style: `<type>: <short description>` (e.g., `feat: add tabs`, `chore: update config`).
+- Keep commits focused; avoid mixing refactors with feature changes.
 - PRs should include a clear description, linked issues (if any), and screenshots/GIFs for UI changes.
 
 ## Security & Configuration Tips

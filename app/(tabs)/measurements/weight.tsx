@@ -1,9 +1,9 @@
 import { View, Text } from "react-native";
 
-import { WeightEntryForm } from "@/components/weights/weight-entry-form";
-import { WeightEntryPreview } from "@/components/weights/weight-entry-preview";
-import { MeasurementsSwitch } from "@/components/measurements/measurements-switch";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { MeasurementsSwitch } from "@/features/measurements/components/measurements-switch";
+import { WeightEntryForm } from "@/features/measurements/components/weight-entry-form";
+import { WeightEntryPreview } from "@/features/measurements/components/weight-entry-preview";
 
 export default function MeasurementsWeightScreen() {
   return (
