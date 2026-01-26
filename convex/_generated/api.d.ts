@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as circumferences from "../circumferences.js";
 import type * as exercises from "../exercises.js";
 import type * as muscles from "../muscles.js";
+import type * as seed from "../seed.js";
 import type * as weights from "../weights.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   circumferences: typeof circumferences;
   exercises: typeof exercises;
   muscles: typeof muscles;
+  seed: typeof seed;
   weights: typeof weights;
 }>;
 
