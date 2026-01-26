@@ -4,7 +4,7 @@ import { Text } from "react-native";
 export default function StartSessionTab() {
   return (
     <ScreenWrapper>
-      <Text className="text-text-primary text-xl">Start Session Tab</Text>
+      <Text className="text-xl text-text-primary">Start Session Tab</Text>
     </ScreenWrapper>
   );
 }
