@@ -1,58 +1,102 @@
-import { Id } from "./_generated/dataModel";
+import { v } from "convex/values";
+
+import type { Id } from "./_generated/dataModel";
 import { internalMutation } from "./_generated/server";
 
-const MUSCLES = [
+const musclesSeed = [
   { slug: "chest", name: "Chest", sortOrder: 10 },
   { slug: "back", name: "Back", sortOrder: 20 },
   { slug: "shoulders", name: "Shoulders", sortOrder: 30 },
   { slug: "biceps", name: "Biceps", sortOrder: 40 },
   { slug: "triceps", name: "Triceps", sortOrder: 50 },
-  { slug: "legs", name: "Legs", sortOrder: 60 },
-  { slug: "glutes", name: "Glutes", sortOrder: 70 },
+  { slug: "hamstrings", name: "Hamstrings", sortOrder: 60 },
+  { slug: "quads", name: "Quads", sortOrder: 70 },
   { slug: "core", name: "Core", sortOrder: 80 },
-] as const;
+];
 
-const EXERCISES = [
+const exercisesSeed = [
+  { name: "Pull-Up", muscleSlug: "back" },
+  { name: "Assisted Pull-Up (Machine)", muscleSlug: "back" },
+  { name: "Lat Pulldown", muscleSlug: "back" },
+  { name: "Seated Cable Row", muscleSlug: "back" },
+  { name: "Chest-Supported Row (Machine)", muscleSlug: "back" },
   { name: "Bench Press", muscleSlug: "chest" },
-  { name: "Incline Dumbbell Press", muscleSlug: "chest" },
-  { name: "Pull-up", muscleSlug: "back" },
-  { name: "Barbell Row", muscleSlug: "back" },
-  { name: "Overhead Press", muscleSlug: "shoulders" },
-  { name: "Lateral Raise", muscleSlug: "shoulders" },
-  { name: "Barbell Curl", muscleSlug: "biceps" },
-  { name: "Triceps Pushdown", muscleSlug: "triceps" },
-  { name: "Back Squat", muscleSlug: "legs" },
-  { name: "Romanian Deadlift", muscleSlug: "legs" },
-  { name: "Hip Thrust", muscleSlug: "glutes" },
+  { name: "Seated Chest Press (Machine)", muscleSlug: "chest" },
+  { name: "Pec Deck (Chest Fly)", muscleSlug: "chest" },
+  { name: "Incline Chest Press (Machine)", muscleSlug: "chest" },
+  { name: "Cable Lateral Raise", muscleSlug: "shoulders" },
+  { name: "Overhead Press (Machine)", muscleSlug: "shoulders" },
+  { name: "Rear Delt Fly (Machine)", muscleSlug: "shoulders" },
+  { name: "Triceps Pressdown (Cable)", muscleSlug: "triceps" },
+  { name: "Overhead Triceps Extension (Cable)", muscleSlug: "triceps" },
+  { name: "Dumbbell Curl", muscleSlug: "biceps" },
+  { name: "Cable Curl", muscleSlug: "biceps" },
+  { name: "Hamstring Curl (Machine)", muscleSlug: "hamstrings" },
   { name: "Plank", muscleSlug: "core" },
-] as const;
+];
 
-export const musclesAndExercises = internalMutation(async (ctx) => {
-  const muscleIdBySlug = new Map<string, Id<"muscles">>();
+export const musclesAndExercises = internalMutation({
+  args: {
+    reset: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    if (args.reset) {
+      const existingExercises = await ctx.db.query("exercises").collect();
+      for (const exercise of existingExercises) {
+        await ctx.db.delete(exercise._id);
+      }
 
-  for (const muscle of MUSCLES) {
-    const existing = await ctx.db
-      .query("muscles")
-      .withIndex("by_slug", (q) => q.eq("slug", muscle.slug))
-      .first();
-
-    const muscleId = existing?._id ?? (await ctx.db.insert("muscles", muscle));
-    muscleIdBySlug.set(muscle.slug, muscleId);
-  }
-
-  for (const exercise of EXERCISES) {
-    const muscleId = muscleIdBySlug.get(exercise.muscleSlug);
-    if (!muscleId) throw new Error(`Unknown muscle slug: ${exercise.muscleSlug}`);
-
-    const existing = await ctx.db
-      .query("exercises")
-      .withIndex("by_name", (q) => q.eq("name", exercise.name))
-      .first();
-
-    if (!existing) {
-      await ctx.db.insert("exercises", { name: exercise.name, muscleId });
+      const existingMuscles = await ctx.db.query("muscles").collect();
+      for (const muscle of existingMuscles) {
+        await ctx.db.delete(muscle._id);
+      }
     }
-  }
 
-  return { muscles: MUSCLES.length, exercises: EXERCISES.length };
+    const muscleIds = new Map<string, Id<"muscles">>();
+    let musclesCount = 0;
+    let exercisesCount = 0;
+
+    for (const muscle of musclesSeed) {
+      const existing = await ctx.db
+        .query("muscles")
+        .withIndex("by_slug", (q) => q.eq("slug", muscle.slug))
+        .unique();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          name: muscle.name,
+          sortOrder: muscle.sortOrder,
+        });
+        muscleIds.set(muscle.slug, existing._id);
+      } else {
+        const id = await ctx.db.insert("muscles", muscle);
+        muscleIds.set(muscle.slug, id);
+      }
+      musclesCount += 1;
+    }
+
+    for (const exercise of exercisesSeed) {
+      const muscleId = muscleIds.get(exercise.muscleSlug);
+      if (!muscleId) continue;
+
+      const existing = await ctx.db
+        .query("exercises")
+        .withIndex("by_name", (q) => q.eq("name", exercise.name))
+        .unique();
+
+      if (existing) {
+        if (existing.muscleId !== muscleId) {
+          await ctx.db.patch(existing._id, { muscleId });
+        }
+      } else {
+        await ctx.db.insert("exercises", {
+          name: exercise.name,
+          muscleId,
+        });
+      }
+      exercisesCount += 1;
+    }
+
+    return { muscles: musclesCount, exercises: exercisesCount };
+  },
 });
