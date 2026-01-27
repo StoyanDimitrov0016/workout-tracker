@@ -35,4 +35,24 @@ export default defineSchema({
   })
     .index("by_name", ["name"])
     .searchIndex("search_name", { searchField: "name" }),
+
+  splits: defineTable({
+    userToken: v.string(),
+    name: v.string(),
+    days: v.array(
+      v.object({
+        weekday: v.number(),
+        title: v.string(),
+        exercises: v.array(
+          v.object({
+            exerciseId: v.id("exercises"),
+            exerciseName: v.string(),
+            sets: v.number(),
+            reps: v.number(),
+            restSec: v.number(),
+          })
+        ),
+      })
+    ),
+  }).index("by_user", ["userToken"]),
 });
