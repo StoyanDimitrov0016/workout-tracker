@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "convex/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { api } from "@/convex/_generated/api";
@@ -78,12 +78,26 @@ function parseNumber(value: string) {
 
 export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilderProps) {
   const saveSplit = useMutation(api.splits.saveMine);
+  const [searchText, setSearchText] = useState("");
+  const [debouncedText, setDebouncedText] = useState("");
+  const [showAllExercises, setShowAllExercises] = useState(false);
   const exercises = useQuery(api.exercises.list);
+  const searchResults = useQuery(api.exercises.searchByName, {
+    text: debouncedText,
+    limit: 20,
+  });
 
   const [name, setName] = useState(initialSplit?.name ?? "");
   const [days, setDays] = useState<BuilderDay[]>(() => buildInitialDays(initialSplit));
   const [expandedWeekday, setExpandedWeekday] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedText(searchText.trim());
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [searchText]);
 
   const toggleTraining = (weekday: number) => {
     setDays((prev) =>
@@ -175,6 +189,15 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
     }
   };
 
+  const handleSearchChange = (value: string) => {
+    setSearchText(value);
+    setShowAllExercises(false);
+  };
+
+  const toggleShowAll = () => {
+    setShowAllExercises(true);
+  };
+
   return (
     <View className="gap-6">
       <View className="gap-2">
@@ -239,7 +262,14 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
 
                 <Pressable
                   onPress={() =>
-                    setExpandedWeekday((prev) => (prev === day.weekday ? null : day.weekday))
+                    setExpandedWeekday((prev) => {
+                      const next = prev === day.weekday ? null : day.weekday;
+                      if (next === null) {
+                        setSearchText("");
+                        setShowAllExercises(false);
+                      }
+                      return next;
+                    })
                   }
                   className="rounded-lg border border-dashed border-border px-3 py-2"
                 >
@@ -248,16 +278,60 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
 
                 {expandedWeekday === day.weekday ? (
                   <View className="gap-2">
-                    {exercises?.map((exercise) => (
-                      <Pressable
-                        key={exercise._id}
-                        onPress={() => addExercise(day.weekday, exercise)}
-                        className="flex-row items-center justify-between rounded-lg border border-border px-3 py-2"
-                      >
-                        <Text className="text-sm text-text-primary">{exercise.name}</Text>
-                        <Text className="text-xs font-semibold text-primary">Add</Text>
-                      </Pressable>
-                    )) ?? <Text className="text-xs text-text-tertiary">Loading exercises...</Text>}
+                    <TextInput
+                      value={searchText}
+                      onChangeText={handleSearchChange}
+                      placeholder="Search exercises"
+                      placeholderTextColor="#9ca3af"
+                      className="rounded-lg border border-border px-3 py-2 text-text-primary"
+                    />
+                    {debouncedText.length === 0 ? (
+                      exercises ? (
+                        <>
+                          {(showAllExercises ? exercises : exercises.slice(0, 20)).map(
+                            (exercise) => (
+                              <Pressable
+                                key={exercise._id}
+                                onPress={() => addExercise(day.weekday, exercise)}
+                                className="flex-row items-center justify-between rounded-lg border border-border px-3 py-2"
+                              >
+                                <Text className="text-sm text-text-primary">{exercise.name}</Text>
+                                <Text className="text-xs font-semibold text-primary">Add</Text>
+                              </Pressable>
+                            )
+                          )}
+                          {!showAllExercises && exercises.length > 20 ? (
+                            <Pressable
+                              onPress={toggleShowAll}
+                              className="rounded-lg border border-border px-3 py-2"
+                            >
+                              <Text className="text-center text-xs font-semibold text-text-secondary">
+                                Show more
+                              </Text>
+                            </Pressable>
+                          ) : null}
+                        </>
+                      ) : (
+                        <Text className="text-xs text-text-tertiary">Loading exercises...</Text>
+                      )
+                    ) : searchResults ? (
+                      searchResults.length > 0 ? (
+                        searchResults.map((exercise) => (
+                          <Pressable
+                            key={exercise._id}
+                            onPress={() => addExercise(day.weekday, exercise)}
+                            className="flex-row items-center justify-between rounded-lg border border-border px-3 py-2"
+                          >
+                            <Text className="text-sm text-text-primary">{exercise.name}</Text>
+                            <Text className="text-xs font-semibold text-primary">Add</Text>
+                          </Pressable>
+                        ))
+                      ) : (
+                        <Text className="text-xs text-text-tertiary">No matches found.</Text>
+                      )
+                    ) : (
+                      <Text className="text-xs text-text-tertiary">Loading exercises...</Text>
+                    )}
                   </View>
                 ) : null}
               </View>
