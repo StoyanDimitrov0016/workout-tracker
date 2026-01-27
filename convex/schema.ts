@@ -27,7 +27,9 @@ export default defineSchema({
     slug: v.string(),
     name: v.string(),
     sortOrder: v.number(),
-  }).index("by_slug", ["slug"]),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_sortOrder", ["sortOrder"]),
 
   exercises: defineTable({
     name: v.string(),
