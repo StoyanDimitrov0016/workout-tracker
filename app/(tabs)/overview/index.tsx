@@ -4,11 +4,13 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
+import { formatWeightKg } from "@/features/measurements/utils/weight";
 import { jsDayToWeekday, weekdayToLabel } from "@/features/splits/constants/weekdays";
 
 export default function OverviewScreen() {
   const router = useRouter();
   const split = useQuery(api.splits.getMineWithDailyMuscleVolume);
+  const weightSummary = useQuery(api.weights.getLatestAndAverage, { days: 7 });
 
   if (split === undefined) {
     return (
@@ -83,8 +85,7 @@ export default function OverviewScreen() {
               const dayTitle = day.title?.trim() || "Training";
               const exercises = day.exercises ?? [];
               const muscleLine =
-                day.setsByMuscle.map((item) => `${item.muscleName} ${item.sets}`).join(", ") ??
-                "";
+                day.setsByMuscle.map((item) => `${item.muscleName} ${item.sets}`).join(", ") ?? "";
               const tagLabel = index === 0 ? (upcomingDelta === 0 ? "Today" : "Up next") : null;
 
               return (
@@ -105,18 +106,13 @@ export default function OverviewScreen() {
 
                   <View className="gap-1">
                     <Text className="text-lg font-semibold text-text-primary">{dayTitle}</Text>
-                    <Text className="text-xs text-text-tertiary">
-                      {exercises.length} exercises
-                    </Text>
+                    <Text className="text-xs text-text-tertiary">{exercises.length} exercises</Text>
                   </View>
 
                   <View className="gap-2">
                     {exercises.length > 0 ? (
                       exercises.map((exercise, exerciseIndex) => (
-                        <View
-                          key={`${exercise.exerciseId}-${exerciseIndex}`}
-                          className="gap-1"
-                        >
+                        <View key={`${exercise.exerciseId}-${exerciseIndex}`} className="gap-1">
                           <Text className="text-sm font-semibold text-text-primary">
                             {exercise.exerciseName}
                           </Text>
@@ -131,25 +127,47 @@ export default function OverviewScreen() {
                   </View>
 
                   <View className="gap-1 border-t border-border pt-3">
-                    <Text className="text-xs font-semibold text-text-secondary">
-                      Muscle groups
-                    </Text>
+                    <Text className="text-xs font-semibold text-text-secondary">Muscle groups</Text>
                     {muscleLine ? (
                       <Text className="text-xs text-text-tertiary">{muscleLine}</Text>
                     ) : (
-                      <Text className="text-xs text-text-tertiary">
-                        No volume recorded yet.
-                      </Text>
+                      <Text className="text-xs text-text-tertiary">No volume recorded yet.</Text>
                     )}
-                    <Text className="text-xs text-text-tertiary">
-                      Total sets: {day.totalSets}
-                    </Text>
+                    <Text className="text-xs text-text-tertiary">Total sets: {day.totalSets}</Text>
                   </View>
                 </View>
               );
             })}
           </View>
         </ScrollView>
+
+        <View className="gap-2">
+          <Text className="text-sm text-text-tertiary">Weight overview</Text>
+          <View className="gap-3 rounded-2xl border border-border bg-card p-4">
+            {weightSummary === undefined ? (
+              <Text className="text-sm text-text-tertiary">Loading weight data...</Text>
+            ) : (
+              <View className="gap-3">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-sm text-text-secondary">Latest weight</Text>
+                  <Text className="text-base font-semibold text-text-primary">
+                    {weightSummary.latestWeightKg !== null
+                      ? `${formatWeightKg(weightSummary.latestWeightKg)} kg`
+                      : "No entries"}
+                  </Text>
+                </View>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-sm text-text-secondary">Last 7 days avg</Text>
+                  <Text className="text-base font-semibold text-text-primary">
+                    {weightSummary.recentAverageKg !== null
+                      ? `${formatWeightKg(weightSummary.recentAverageKg)} kg`
+                      : "No entries"}
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
       </View>
     </ScreenWrapper>
   );
