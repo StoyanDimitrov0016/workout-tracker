@@ -11,6 +11,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="overview/index"
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
@@ -24,11 +25,11 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="overview"
+        name="overview/index"
         options={{
           title: "Overview",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "grid" : "grid-outline"} size={size} color={color} />
+            <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -46,7 +47,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="start-session"
         options={{
-          title: "Workout",
+          title: "Start",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "barbell" : "barbell-outline"}
@@ -62,11 +63,7 @@ export default function TabLayout() {
         options={{
           title: "Stats",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "analytics" : "analytics-outline"}
-              size={size}
-              color={color}
-            />
+            <Ionicons name={focused ? "stats-chart" : "stats-chart-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -74,7 +71,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="training-split"
         options={{
-          title: "Plan",
+          title: "Split",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? "calendar" : "calendar-outline"} size={size} color={color} />
           ),
