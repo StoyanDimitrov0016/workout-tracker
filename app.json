@@ -12,6 +12,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.stoyan.workouttracker",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -24,9 +26,7 @@
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png",
-      "web": {
-        "bundler": "metro"
-      }
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router",
@@ -47,6 +47,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f0d10abc-114f-4431-b487-d848c033a768"
+      }
+    },
+    "owner": "stoyan_dimitrov"
   }
 }
