@@ -1,51 +1,61 @@
+import { useEffect, useMemo, useState } from "react";
+import { View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { ExerciseRow } from "@/features/splits/components/exercise-row";
+import {
+  type BuilderDay,
+  type BuilderExercise,
+  type BuilderSetTarget,
+  type SplitDayInput,
+  type SplitInput,
+} from "@/features/splits/components/split-builder-types";
+import { SplitBuilderStepOne } from "@/features/splits/components/split-builder-step-one";
+import { SplitBuilderStepTwo } from "@/features/splits/components/split-builder-step-two";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
-
-type SplitExerciseInput = {
-  exerciseId: Id<"exercises">;
-  exerciseName: string;
-  sets: number;
-  reps: number;
-  restSec: number;
-};
-
-type SplitDayInput = {
-  weekday: number;
-  title: string;
-  exercises: SplitExerciseInput[];
-};
-
-type SplitInput = {
-  name: string;
-  days: SplitDayInput[];
-};
-
-type BuilderExercise = {
-  exerciseId: Id<"exercises">;
-  exerciseName: string;
-  sets: string;
-  reps: string;
-  restSec: string;
-};
-
-type BuilderDay = {
-  weekday: number;
-  label: string;
-  isTraining: boolean;
-  title: string;
-  exercises: BuilderExercise[];
-};
 
 interface SplitBuilderProps {
   initialSplit: SplitInput | null;
   submitLabel: string;
   onSaved: () => void;
+}
+
+const DEFAULT_SET_TARGET: BuilderSetTarget = { reps: "", restSec: "120" };
+const DEFAULT_SET_COUNT = 3;
+const DAY_TITLE_PLACEHOLDERS = [
+  "Upper A",
+  "Lower A",
+  "Push Midweek",
+  "Pull",
+  "Legs",
+  "Upper B",
+  "Lower B",
+];
+
+function createDefaultSetTargets(count: number) {
+  const safeCount = Math.max(1, count);
+  return Array.from({ length: safeCount }, () => ({ ...DEFAULT_SET_TARGET }));
+}
+
+function ensureSetTargets(setTargets: BuilderSetTarget[]) {
+  return setTargets.length > 0 ? setTargets : createDefaultSetTargets(1);
+}
+
+function parseOptionalNumber(value: string) {
+  const trimmed = value.trim();
+  if (trimmed === "") return undefined;
+  const parsed = Number(trimmed);
+  if (Number.isNaN(parsed)) return undefined;
+  return Math.max(0, parsed);
+}
+
+function parseRequiredNumber(value: string) {
+  return parseOptionalNumber(value) ?? 0;
+}
+
+function getPlaceholderForIndex(index: number) {
+  return DAY_TITLE_PLACEHOLDERS[index % DAY_TITLE_PLACEHOLDERS.length];
 }
 
 function buildInitialDays(split: SplitInput | null): BuilderDay[] {
@@ -59,45 +69,60 @@ function buildInitialDays(split: SplitInput | null): BuilderDay[] {
       isTraining: Boolean(day),
       title: day?.title ?? "",
       exercises:
-        day?.exercises.map((exercise) => ({
-          exerciseId: exercise.exerciseId,
-          exerciseName: exercise.exerciseName,
-          sets: String(exercise.sets),
-          reps: String(exercise.reps),
-          restSec: String(exercise.restSec),
-        })) ?? [],
+        day?.exercises.map((exercise) => {
+          const mappedTargets = exercise.setTargets.map((target) => ({
+            reps: String(target.reps),
+            restSec: String(target.restSec),
+          }));
+          const safeTargets = ensureSetTargets(mappedTargets);
+
+          return {
+            exerciseId: exercise.exerciseId,
+            exerciseName: exercise.exerciseName,
+            setTargets: safeTargets,
+          };
+        }) ?? [],
     };
   });
 }
 
-function parseNumber(value: string) {
-  const parsed = Number(value);
-  if (Number.isNaN(parsed)) return 0;
-  return Math.max(0, parsed);
-}
-
 export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilderProps) {
   const saveSplit = useMutation(api.splits.saveMine);
+  const exercises = useQuery(api.exercises.list);
+  const [name, setName] = useState(initialSplit?.name ?? "");
+  const [days, setDays] = useState<BuilderDay[]>(() => buildInitialDays(initialSplit));
+  const [step, setStep] = useState<1 | 2>(1);
   const [searchText, setSearchText] = useState("");
   const [debouncedText, setDebouncedText] = useState("");
   const [showAllExercises, setShowAllExercises] = useState(false);
-  const exercises = useQuery(api.exercises.list);
+  const [expandedWeekday, setExpandedWeekday] = useState<number | null>(null);
+  const [expandedExerciseKey, setExpandedExerciseKey] = useState<string | null>(null);
+  const [copyMenuWeekday, setCopyMenuWeekday] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
   const searchResults = useQuery(api.exercises.searchByName, {
     text: debouncedText,
     limit: 20,
   });
 
-  const [name, setName] = useState(initialSplit?.name ?? "");
-  const [days, setDays] = useState<BuilderDay[]>(() => buildInitialDays(initialSplit));
-  const [expandedWeekday, setExpandedWeekday] = useState<number | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const trainingDays = useMemo(() => days.filter((day) => day.isTraining), [days]);
+  const placeholderByWeekday = useMemo(
+    () =>
+      new Map(WEEKDAYS.map((weekday, index) => [weekday.weekday, getPlaceholderForIndex(index)])),
+    []
+  );
+  const hasTrainingDays = trainingDays.length > 0;
+  const hasExercises = trainingDays.some((day) => day.exercises.length > 0);
+  const canContinue = hasTrainingDays && hasExercises;
 
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      setDebouncedText(searchText.trim());
-    }, 300);
-    return () => clearTimeout(handle);
-  }, [searchText]);
+  const setStepAndReset = (nextStep: 1 | 2) => {
+    setStep(nextStep);
+    setExpandedWeekday(null);
+    setExpandedExerciseKey(null);
+    setCopyMenuWeekday(null);
+    setSearchText("");
+    setShowAllExercises(false);
+  };
 
   const toggleTraining = (weekday: number) => {
     setDays((prev) =>
@@ -106,7 +131,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
           ? {
               ...day,
               isTraining: !day.isTraining,
-              title: day.isTraining ? "" : day.title || "Workout",
+              title: day.isTraining ? "" : day.title || "",
               exercises: day.isTraining ? [] : day.exercises,
             }
           : day
@@ -118,11 +143,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
     setDays((prev) => prev.map((day) => (day.weekday === weekday ? { ...day, title } : day)));
   };
 
-  const updateExercise = (
-    weekday: number,
-    index: number,
-    next: { sets: string; reps: string; restSec: string }
-  ) => {
+  const updateExercise = (weekday: number, index: number, next: Partial<BuilderExercise>) => {
     setDays((prev) =>
       prev.map((day) => {
         if (day.weekday !== weekday) return day;
@@ -134,6 +155,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
   };
 
   const removeExercise = (weekday: number, index: number) => {
+    const exerciseKey = `${weekday}-${index}`;
     setDays((prev) =>
       prev.map((day) =>
         day.weekday === weekday
@@ -141,28 +163,67 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
           : day
       )
     );
+    if (expandedExerciseKey === exerciseKey) {
+      setExpandedExerciseKey(null);
+    }
   };
 
   const addExercise = (weekday: number, exercise: { _id: Id<"exercises">; name: string }) => {
     setDays((prev) =>
-      prev.map((day) =>
-        day.weekday === weekday
-          ? {
-              ...day,
-              exercises: [
-                ...day.exercises,
-                {
-                  exerciseId: exercise._id,
-                  exerciseName: exercise.name,
-                  sets: "3",
-                  reps: "10",
-                  restSec: "90",
-                },
-              ],
-            }
-          : day
-      )
+      prev.map((day) => {
+        if (day.weekday !== weekday) return day;
+        return {
+          ...day,
+          exercises: [
+            ...day.exercises,
+            {
+              exerciseId: exercise._id,
+              exerciseName: exercise.name,
+              setTargets: createDefaultSetTargets(DEFAULT_SET_COUNT),
+            },
+          ],
+        };
+      })
     );
+  };
+
+  const cloneExercises = (items: BuilderExercise[]) =>
+    items.map((exercise) => ({
+      ...exercise,
+      setTargets: exercise.setTargets.map((target) => ({ ...target })),
+    }));
+
+  const copyExercisesToDay = (sourceWeekday: number, targetWeekday: number) => {
+    setDays((prev) =>
+      prev.map((day) => {
+        if (day.weekday === sourceWeekday) return day;
+        if (day.weekday !== targetWeekday) return day;
+
+        const source = prev.find((item) => item.weekday === sourceWeekday);
+        if (!source) return day;
+
+        return {
+          ...day,
+          exercises: cloneExercises(source.exercises),
+        };
+      })
+    );
+    setExpandedExerciseKey(null);
+    setCopyMenuWeekday(null);
+  };
+
+  const copyExercisesToAll = (sourceWeekday: number) => {
+    setDays((prev) => {
+      const source = prev.find((day) => day.weekday === sourceWeekday);
+      if (!source) return prev;
+      return prev.map((day) =>
+        day.weekday === sourceWeekday || !day.isTraining
+          ? day
+          : { ...day, exercises: cloneExercises(source.exercises) }
+      );
+    });
+    setExpandedExerciseKey(null);
+    setCopyMenuWeekday(null);
   };
 
   const handleSave = async () => {
@@ -175,9 +236,10 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
         exercises: day.exercises.map((exercise) => ({
           exerciseId: exercise.exerciseId,
           exerciseName: exercise.exerciseName,
-          sets: parseNumber(exercise.sets),
-          reps: parseNumber(exercise.reps),
-          restSec: parseNumber(exercise.restSec),
+          setTargets: ensureSetTargets(exercise.setTargets).map((set) => ({
+            reps: parseRequiredNumber(set.reps),
+            restSec: parseRequiredNumber(set.restSec),
+          })),
         })),
       }));
 
@@ -194,163 +256,74 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
     setShowAllExercises(false);
   };
 
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedText(searchText.trim());
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [searchText]);
+
   const toggleShowAll = () => {
     setShowAllExercises(true);
   };
 
+  if (step === 1) {
+    return (
+      <SplitBuilderStepOne
+        name={name}
+        days={days}
+        placeholderByWeekday={placeholderByWeekday}
+        expandedWeekday={expandedWeekday}
+        searchText={searchText}
+        debouncedText={debouncedText}
+        showAllExercises={showAllExercises}
+        exercises={exercises}
+        searchResults={searchResults}
+        canContinue={canContinue}
+        hasTrainingDays={hasTrainingDays}
+        hasExercises={hasExercises}
+        onNameChange={setName}
+        onToggleTraining={toggleTraining}
+        onUpdateTitle={updateTitle}
+        onRemoveExercise={removeExercise}
+        onToggleExercises={(weekday) =>
+          setExpandedWeekday((prev) => {
+            const next = prev === weekday ? null : weekday;
+            if (next === null) {
+              setSearchText("");
+              setShowAllExercises(false);
+            }
+            return next;
+          })
+        }
+        onSearchChange={handleSearchChange}
+        onShowAllExercises={toggleShowAll}
+        onAddExercise={addExercise}
+        onContinue={() => setStepAndReset(2)}
+      />
+    );
+  }
+
   return (
-    <View className="gap-6">
-      <View className="gap-2">
-        <Text className="text-base font-semibold text-text-primary">Split name</Text>
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="e.g. Push Pull Legs"
-          placeholderTextColor="#9ca3af"
-          className="rounded-xl border border-border px-3 py-3 text-text-primary"
-        />
-      </View>
-
-      <View className="gap-4">
-        {days.map((day) => (
-          <View key={day.weekday} className="gap-3 rounded-2xl border border-border bg-card p-4">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-base font-semibold text-text-primary">
-                {day.label} - {day.isTraining ? "Training" : "Rest"}
-              </Text>
-              <Pressable
-                onPress={() => toggleTraining(day.weekday)}
-                className={`rounded-full px-3 py-1 ${
-                  day.isTraining ? "bg-primary/15" : "bg-border"
-                }`}
-              >
-                <Text className="text-xs font-semibold text-text-primary">
-                  {day.isTraining ? "Set Rest" : "Set Training"}
-                </Text>
-              </Pressable>
-            </View>
-
-            {day.isTraining ? (
-              <View className="gap-3">
-                <View className="gap-2">
-                  <Text className="text-xs text-text-tertiary">Day title</Text>
-                  <TextInput
-                    value={day.title}
-                    onChangeText={(text) => updateTitle(day.weekday, text)}
-                    placeholder="e.g. Push"
-                    placeholderTextColor="#9ca3af"
-                    className="rounded-lg border border-border px-3 py-2 text-text-primary"
-                  />
-                </View>
-
-                <View className="gap-2">
-                  {day.exercises.length === 0 ? (
-                    <Text className="text-xs text-text-tertiary">No exercises yet.</Text>
-                  ) : null}
-                  {day.exercises.map((exercise, index) => (
-                    <ExerciseRow
-                      key={`${exercise.exerciseId}-${exercise.exerciseName}-${index}`}
-                      name={exercise.exerciseName}
-                      sets={exercise.sets}
-                      reps={exercise.reps}
-                      restSec={exercise.restSec}
-                      onChange={(next) => updateExercise(day.weekday, index, next)}
-                      onRemove={() => removeExercise(day.weekday, index)}
-                    />
-                  ))}
-                </View>
-
-                <Pressable
-                  onPress={() =>
-                    setExpandedWeekday((prev) => {
-                      const next = prev === day.weekday ? null : day.weekday;
-                      if (next === null) {
-                        setSearchText("");
-                        setShowAllExercises(false);
-                      }
-                      return next;
-                    })
-                  }
-                  className="rounded-lg border border-dashed border-border px-3 py-2"
-                >
-                  <Text className="text-center text-sm text-text-secondary">Add exercise</Text>
-                </Pressable>
-
-                {expandedWeekday === day.weekday ? (
-                  <View className="gap-2">
-                    <TextInput
-                      value={searchText}
-                      onChangeText={handleSearchChange}
-                      placeholder="Search exercises"
-                      placeholderTextColor="#9ca3af"
-                      className="rounded-lg border border-border px-3 py-2 text-text-primary"
-                    />
-                    {debouncedText.length === 0 ? (
-                      exercises ? (
-                        <>
-                          {(showAllExercises ? exercises : exercises.slice(0, 20)).map(
-                            (exercise) => (
-                              <Pressable
-                                key={exercise._id}
-                                onPress={() => addExercise(day.weekday, exercise)}
-                                className="flex-row items-center justify-between rounded-lg border border-border px-3 py-2"
-                              >
-                                <Text className="text-sm text-text-primary">{exercise.name}</Text>
-                                <Text className="text-xs font-semibold text-primary">Add</Text>
-                              </Pressable>
-                            )
-                          )}
-                          {!showAllExercises && exercises.length > 20 ? (
-                            <Pressable
-                              onPress={toggleShowAll}
-                              className="rounded-lg border border-border px-3 py-2"
-                            >
-                              <Text className="text-center text-xs font-semibold text-text-secondary">
-                                Show more
-                              </Text>
-                            </Pressable>
-                          ) : null}
-                        </>
-                      ) : (
-                        <Text className="text-xs text-text-tertiary">Loading exercises...</Text>
-                      )
-                    ) : searchResults ? (
-                      searchResults.length > 0 ? (
-                        searchResults.map((exercise) => (
-                          <Pressable
-                            key={exercise._id}
-                            onPress={() => addExercise(day.weekday, exercise)}
-                            className="flex-row items-center justify-between rounded-lg border border-border px-3 py-2"
-                          >
-                            <Text className="text-sm text-text-primary">{exercise.name}</Text>
-                            <Text className="text-xs font-semibold text-primary">Add</Text>
-                          </Pressable>
-                        ))
-                      ) : (
-                        <Text className="text-xs text-text-tertiary">No matches found.</Text>
-                      )
-                    ) : (
-                      <Text className="text-xs text-text-tertiary">Loading exercises...</Text>
-                    )}
-                  </View>
-                ) : null}
-              </View>
-            ) : (
-              <Text className="text-xs text-text-tertiary">Rest day.</Text>
-            )}
-          </View>
-        ))}
-      </View>
-
-      <Pressable
-        onPress={handleSave}
-        disabled={isSaving}
-        className={`rounded-xl py-3 ${isSaving ? "bg-primary/60" : "bg-primary"}`}
-      >
-        <Text className="text-center font-semibold text-white">
-          {isSaving ? "Saving..." : submitLabel}
-        </Text>
-      </Pressable>
-    </View>
+    <SplitBuilderStepTwo
+      trainingDays={trainingDays}
+      placeholderByWeekday={placeholderByWeekday}
+      expandedExerciseKey={expandedExerciseKey}
+      copyMenuWeekday={copyMenuWeekday}
+      submitLabel={submitLabel}
+      isSaving={isSaving}
+      onToggleExpandedExercise={(exerciseKey) =>
+        setExpandedExerciseKey((prev) => (prev === exerciseKey ? null : exerciseKey))
+      }
+      onUpdateExercise={updateExercise}
+      onRemoveExercise={removeExercise}
+      onToggleCopyMenu={(weekday) =>
+        setCopyMenuWeekday((prev) => (prev === weekday ? null : weekday))
+      }
+      onCopyExercisesToDay={copyExercisesToDay}
+      onCopyExercisesToAll={copyExercisesToAll}
+      onBack={() => setStepAndReset(1)}
+      onSave={handleSave}
+    />
   );
 }

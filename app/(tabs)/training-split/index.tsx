@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { api } from "@/convex/_generated/api";
 import { DayCard } from "@/features/splits/components/day-card";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
+import { getSetCount, getTotalReps } from "@/features/splits/utils/targets";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 
 export default function TrainingSplitIndex() {
@@ -51,10 +52,16 @@ export default function TrainingSplitIndex() {
             <View className="gap-3">
               {WEEKDAYS.map((day) => {
                 const dayData = daysByWeekday.get(day.weekday);
-                const totalSets =
-                  dayData?.exercises.reduce((sum, exercise) => sum + exercise.sets, 0) ?? 0;
+                const totals = dayData?.exercises.reduce(
+                  (acc, exercise) => {
+                    acc.sets += getSetCount(exercise.setTargets);
+                    acc.reps += getTotalReps(exercise.setTargets);
+                    return acc;
+                  },
+                  { sets: 0, reps: 0 }
+                ) ?? { sets: 0, reps: 0 };
                 const summary = dayData
-                  ? `${dayData.exercises.length} exercises - ${totalSets} sets`
+                  ? `${dayData.exercises.length} exercises | ${totals.sets} sets | ${totals.reps} reps`
                   : "";
                 const title = dayData?.title?.trim() || (dayData ? "Training" : "Rest");
                 const isRest = !dayData;
@@ -70,8 +77,8 @@ export default function TrainingSplitIndex() {
                     const muscleName =
                       (exerciseMeta && muscleById.get(exerciseMeta.muscleId)?.name) || "Other";
                     const current = byMuscle.get(muscleName) ?? { sets: 0, reps: 0 };
-                    current.sets += exercise.sets;
-                    current.reps += exercise.sets * exercise.reps;
+                    current.sets += getSetCount(exercise.setTargets);
+                    current.reps += getTotalReps(exercise.setTargets);
                     byMuscle.set(muscleName, current);
                   });
 
@@ -79,7 +86,6 @@ export default function TrainingSplitIndex() {
                     details.push(`${name}: ${value.sets} sets, ${value.reps} reps`);
                   });
                 }
-
                 return (
                   <DayCard
                     key={day.weekday}
