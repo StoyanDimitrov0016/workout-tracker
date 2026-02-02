@@ -35,12 +35,18 @@ export function CircumferenceEntryCarousel() {
         contentContainerStyle={{ paddingHorizontal: 16 }}
       >
         {entries === undefined && (
-          <View className="rounded-2xl border border-border bg-card p-4" style={{ width: cardWidth }}>
+          <View
+            className="rounded-2xl border border-border bg-card p-4"
+            style={{ width: cardWidth }}
+          >
             <Text className="text-text-tertiary">Loading...</Text>
           </View>
         )}
         {entries?.length === 0 && (
-          <View className="rounded-2xl border border-border bg-card p-4" style={{ width: cardWidth }}>
+          <View
+            className="rounded-2xl border border-border bg-card p-4"
+            style={{ width: cardWidth }}
+          >
             <Text className="text-sm text-text-tertiary">
               Your latest circumference measurements will appear here.
             </Text>

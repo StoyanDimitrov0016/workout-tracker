@@ -1,10 +1,7 @@
 import Slider from "@react-native-community/slider";
 import { Text, View } from "react-native";
 
-import {
-  MAX_WEIGHT_DELTA_KG,
-  MIN_WEIGHT_DELTA_KG,
-} from "@/features/measurements/constants/weight";
+import { MAX_WEIGHT_DELTA_KG, MIN_WEIGHT_DELTA_KG } from "@/features/measurements/constants/weight";
 
 interface WeightEntryAdjusterProps {
   baseWeightKg: number | null;
