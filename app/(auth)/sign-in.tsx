@@ -13,6 +13,7 @@ export default function SignIn() {
     try {
       const redirectUrl = AuthSession.makeRedirectUri({
         scheme: "workouttracker",
+        path: "sso-callback",
       });
 
       const { createdSessionId, setActive } = await startSSOFlow({
