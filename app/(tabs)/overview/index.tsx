@@ -6,6 +6,7 @@ import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
 import { formatWeightKg } from "@/features/measurements/utils/weight";
 import { jsDayToWeekday, weekdayToLabel } from "@/features/splits/constants/weekdays";
+import { formatSetTargetsSummary } from "@/features/splits/utils/targets";
 
 export default function OverviewScreen() {
   const router = useRouter();
@@ -117,7 +118,7 @@ export default function OverviewScreen() {
                             {exercise.exerciseName}
                           </Text>
                           <Text className="text-xs text-text-tertiary">
-                            {exercise.sets} x {exercise.reps} • {exercise.restSec}s rest
+                            {formatSetTargetsSummary(exercise.setTargets)}
                           </Text>
                         </View>
                       ))
