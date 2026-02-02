@@ -17,7 +17,7 @@ export default function StartSessionTab() {
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [entries, setEntries] = useState<
-    Record<string, { isDone: boolean; sets: Array<{ reps: string; weightKg: string; restSec: string }> }>
+    Record<string, { isDone: boolean; sets: { reps: string; weightKg: string; restSec: string }[] }>
   >({});
 
   useEffect(() => {
@@ -42,18 +42,26 @@ export default function StartSessionTab() {
     setEntries(() => {
       const next: Record<
         string,
-        { isDone: boolean; sets: Array<{ reps: string; weightKg: string; restSec: string }> }
+        { isDone: boolean; sets: { reps: string; weightKg: string; restSec: string }[] }
       > = {};
       upcomingDay.exercises.forEach((exercise, index) => {
         const key = `${exercise.exerciseId}-${index}`;
+        const firstTarget = exercise.setTargets[0];
+        const firstSet = firstTarget
+          ? {
+              reps: String(firstTarget.reps),
+              weightKg: "",
+              restSec: String(firstTarget.restSec),
+            }
+          : { reps: "", weightKg: "", restSec: "" };
         next[key] = {
           isDone: false,
-          sets: [{ reps: "", weightKg: "", restSec: "" }],
+          sets: [firstSet],
         };
       });
       return next;
     });
-  }, [upcomingDay?.weekday]);
+  }, [upcomingDay]);
 
   if (split === undefined) {
     return (
@@ -85,28 +93,28 @@ export default function StartSessionTab() {
     <ScreenWrapper>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View className="gap-6">
-        <View className="gap-2">
-          <Text className="text-sm text-text-tertiary">Rest timer</Text>
-          <RestTimer
-            presets={TIMER_PRESETS}
-            seconds={timerSeconds}
-            onSelectPreset={(seconds) => {
-              setIsRunning(false);
-              setTimerSeconds(seconds);
-            }}
-            onStart={() => {
-              if (timerSeconds === null) {
-                setTimerSeconds(TIMER_PRESETS[0].seconds);
-              }
-              setIsRunning(true);
-            }}
-            onPause={() => setIsRunning(false)}
-            onReset={() => {
-              setIsRunning(false);
-              setTimerSeconds(null);
-            }}
-          />
-        </View>
+          <View className="gap-2">
+            <Text className="text-sm text-text-tertiary">Rest timer</Text>
+            <RestTimer
+              presets={TIMER_PRESETS}
+              seconds={timerSeconds}
+              onSelectPreset={(seconds) => {
+                setIsRunning(false);
+                setTimerSeconds(seconds);
+              }}
+              onStart={() => {
+                if (timerSeconds === null) {
+                  setTimerSeconds(TIMER_PRESETS[0].seconds);
+                }
+                setIsRunning(true);
+              }}
+              onPause={() => setIsRunning(false)}
+              onReset={() => {
+                setIsRunning(false);
+                setTimerSeconds(null);
+              }}
+            />
+          </View>
 
           <View className="gap-2">
             <View className="gap-1">
@@ -124,15 +132,14 @@ export default function StartSessionTab() {
                   isDone: false,
                   sets: [{ reps: "", weightKg: "", restSec: "" }],
                 };
-                const canAddSet = entry.sets.length < exercise.sets;
+                const targetSetCount = Math.max(1, exercise.setTargets.length);
+                const canAddSet = entry.sets.length < targetSetCount;
 
                 return (
                   <SessionExerciseCard
                     key={key}
                     name={exercise.exerciseName}
-                    targetSets={exercise.sets}
-                    targetReps={exercise.reps}
-                    targetRestSec={exercise.restSec}
+                    setTargets={exercise.setTargets}
                     sets={entry.sets}
                     isDone={entry.isDone}
                     onToggleDone={() =>
@@ -143,11 +150,19 @@ export default function StartSessionTab() {
                     }
                     onAddSet={() => {
                       if (!canAddSet) return;
+                      const nextTarget = exercise.setTargets[entry.sets.length];
+                      const nextSet = nextTarget
+                        ? {
+                            reps: String(nextTarget.reps),
+                            weightKg: "",
+                            restSec: String(nextTarget.restSec),
+                          }
+                        : { reps: "", weightKg: "", restSec: "" };
                       setEntries((prev) => ({
                         ...prev,
                         [key]: {
                           ...prev[key],
-                          sets: [...prev[key].sets, { reps: "", weightKg: "", restSec: "" }],
+                          sets: [...prev[key].sets, nextSet],
                         },
                       }));
                     }}

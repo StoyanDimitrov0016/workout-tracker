@@ -63,7 +63,11 @@ export default function TabLayout() {
         options={{
           title: "Stats",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "stats-chart" : "stats-chart-outline"} size={size} color={color} />
+            <Ionicons
+              name={focused ? "stats-chart" : "stats-chart-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

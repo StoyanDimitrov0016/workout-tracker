@@ -7,9 +7,12 @@ import { mutation, query } from "./_generated/server";
 const splitExerciseSchema = v.object({
   exerciseId: v.id("exercises"),
   exerciseName: v.string(),
-  sets: v.number(),
-  reps: v.number(),
-  restSec: v.number(),
+  setTargets: v.array(
+    v.object({
+      reps: v.number(),
+      restSec: v.number(),
+    })
+  ),
 });
 
 const daySchema = v.object({
@@ -104,7 +107,8 @@ export const getMineWithDailyMuscleVolume = query({
       >();
 
       day.exercises.forEach((exercise) => {
-        totalSets += exercise.sets;
+        const exerciseSets = exercise.setTargets.length;
+        totalSets += exerciseSets;
         const muscleId = exerciseToMuscle.get(exercise.exerciseId);
         if (!muscleId) return;
         const muscleInfo = muscleById.get(muscleId);
@@ -114,7 +118,7 @@ export const getMineWithDailyMuscleVolume = query({
           muscleName: muscleInfo.name,
           sets: 0,
         };
-        existing.sets += exercise.sets;
+        existing.sets += exerciseSets;
         setsByMuscle.set(muscleId, existing);
       });
 

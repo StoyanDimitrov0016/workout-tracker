@@ -22,16 +22,12 @@ export function DayCard({
   onPress,
 }: DayCardProps) {
   const tagStyles =
-    tagTone === "rest"
-      ? "bg-secondary-light text-secondary"
-      : "bg-primary text-white";
+    tagTone === "rest" ? "bg-secondary-light text-secondary" : "bg-primary text-white";
 
   return (
     <Pressable
       onPress={onPress}
-      className={`rounded-2xl border border-border bg-card ${
-        compact ? "px-4 py-3" : "p-4"
-      }`}
+      className={`rounded-2xl border border-border bg-card ${compact ? "px-4 py-3" : "p-4"}`}
     >
       <View className={compact ? "gap-1" : "gap-2"}>
         <View className="flex-row items-center justify-between">

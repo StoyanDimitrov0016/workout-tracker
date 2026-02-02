@@ -6,9 +6,7 @@ type SplitDay = {
   exercises: Array<{
     exerciseId: string;
     exerciseName: string;
-    sets: number;
-    reps: number;
-    restSec: number;
+    setTargets: Array<{ reps: number; restSec: number }>;
   }>;
 };
 

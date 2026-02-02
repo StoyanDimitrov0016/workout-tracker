@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
+import { formatSetTargetsSummary } from "@/features/splits/utils/targets";
 
 export default function TrainingSplitDay() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function TrainingSplitDay() {
                   {exercise.exerciseName}
                 </Text>
                 <Text className="text-sm text-text-tertiary">
-                  {exercise.sets} x {exercise.reps} - {exercise.restSec}s rest
+                  {formatSetTargetsSummary(exercise.setTargets)}
                 </Text>
               </View>
             ))}

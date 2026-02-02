@@ -49,9 +49,12 @@ export default defineSchema({
           v.object({
             exerciseId: v.id("exercises"),
             exerciseName: v.string(),
-            sets: v.number(),
-            reps: v.number(),
-            restSec: v.number(),
+            setTargets: v.array(
+              v.object({
+                reps: v.number(),
+                restSec: v.number(),
+              })
+            ),
           })
         ),
       })
