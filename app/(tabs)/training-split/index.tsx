@@ -7,6 +7,7 @@ import { DayCard } from "@/features/splits/components/day-card";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
 import { getSetCount, getTotalReps } from "@/features/splits/utils/targets";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { AppHeaderActions } from "@/components/app-header-actions";
 
 export default function TrainingSplitIndex() {
   const router = useRouter();
@@ -32,11 +33,20 @@ export default function TrainingSplitIndex() {
         options={{
           headerRight: split
             ? () => (
-                <Pressable onPress={() => router.push("/training-split/edit")}>
-                  <Text className="text-sm font-semibold text-primary">Edit</Text>
-                </Pressable>
+                <View style={{ paddingRight: 12, paddingVertical: 6 }}>
+                  <View className="flex-row items-center gap-3">
+                    <Pressable onPress={() => router.push("/training-split/edit")}>
+                      <Text className="text-sm font-semibold text-primary">Edit</Text>
+                    </Pressable>
+                    <AppHeaderActions onPress={() => router.push("/(modals)/account")} />
+                  </View>
+                </View>
               )
-            : undefined,
+            : () => (
+                <View style={{ paddingRight: 12, paddingVertical: 6 }}>
+                  <AppHeaderActions onPress={() => router.push("/(modals)/account")} />
+                </View>
+              ),
         }}
       />
 

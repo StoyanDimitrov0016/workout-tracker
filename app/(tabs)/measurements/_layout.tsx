@@ -1,5 +1,9 @@
 import { Stack } from "expo-router";
 
-export default function MeasurementsLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+import { useDefaultStackScreenOptions } from "@/components/navigation/use-default-stack-screen-options";
+
+export default function MeasurementsStackLayout() {
+  const screenOptions = useDefaultStackScreenOptions();
+
+  return <Stack screenOptions={screenOptions} />;
 }
