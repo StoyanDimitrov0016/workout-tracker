@@ -60,4 +60,37 @@ export default defineSchema({
       })
     ),
   }).index("by_user", ["userToken"]),
+
+  workoutSessions: defineTable({
+    userToken: v.string(),
+    splitId: v.optional(v.id("splits")),
+    weekday: v.number(),
+    title: v.string(),
+    status: v.union(v.literal("active"), v.literal("completed")),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+    exercises: v.array(
+      v.object({
+        exerciseId: v.id("exercises"),
+        exerciseName: v.string(),
+        targetSets: v.array(
+          v.object({
+            reps: v.number(),
+            restSec: v.number(),
+          })
+        ),
+        performedSets: v.array(
+          v.object({
+            reps: v.union(v.number(), v.null()),
+            weightKg: v.union(v.number(), v.null()),
+            restSec: v.union(v.number(), v.null()),
+          })
+        ),
+        isDone: v.boolean(),
+      })
+    ),
+  })
+    .index("by_user", ["userToken"])
+    .index("by_user_and_status", ["userToken", "status"])
+    .index("by_user_and_startedAt", ["userToken", "startedAt"]),
 });

@@ -25,7 +25,6 @@ export function SessionExerciseCard({
   const totalWeight = sets.reduce((sum, set) => sum + Number.parseFloat(set.weightKg || "0"), 0);
   const averageWeight = sets.length > 0 ? totalWeight / sets.length : 0;
   const targetSummary = formatSetTargetsSummary(setTargets);
-  const targetSetCount = Math.max(1, setTargets.length);
 
   return (
     <View className="gap-3 rounded-2xl border border-border bg-card p-4">
@@ -94,20 +93,8 @@ export function SessionExerciseCard({
             })}
           </View>
           <View className="flex-row gap-2">
-            <Pressable
-              onPress={onAddSet}
-              className={`flex-1 rounded-xl px-3 py-2 ${
-                sets.length >= targetSetCount ? "border border-border opacity-40" : "bg-primary"
-              }`}
-              disabled={sets.length >= targetSetCount}
-            >
-              <Text
-                className={`text-center text-sm font-semibold ${
-                  sets.length >= targetSetCount ? "text-text-primary" : "text-white"
-                }`}
-              >
-                Add set
-              </Text>
+            <Pressable onPress={onAddSet} className="flex-1 rounded-xl bg-primary px-3 py-2">
+              <Text className="text-center text-sm font-semibold text-white">Add set</Text>
             </Pressable>
             <Pressable
               onPress={onToggleDone}
