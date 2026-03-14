@@ -1,52 +1,30 @@
-import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
-import { api } from "@/convex/_generated/api";
 import { formatDateTime } from "@/utils/format/date-time";
+import { useOverviewData } from "@/features/overview/hooks/use-overview-data";
 import { OverviewMetricCard } from "@/features/overview/components/overview-metric-card";
 import { OverviewSplitDayCard } from "@/features/overview/components/overview-split-day-card";
 import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
 import { formatWeightKg } from "@/utils/format/weight";
-import { jsDayToWeekday, weekdayToLabel } from "@/features/splits/constants/weekdays";
+import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 
 export default function OverviewScreen() {
   const router = useRouter();
-  const split = useQuery(api.splits.getMineWithDailyMuscleVolume);
-  const weightSummary = useQuery(api.weights.getLatestAndAverage, { days: 7 });
-  const activeSession = useQuery(api.workoutSessions.getActive);
-  const statistics = useQuery(api.workoutSessions.getStatisticsOverview);
+  const {
+    activeSession,
+    isLoading,
+    orderedDays,
+    primaryDay,
+    sameWeekdaySession,
+    split,
+    statistics,
+    upcomingDelta,
+    weightSummary,
+  } = useOverviewData();
 
-  const today = jsDayToWeekday(new Date().getDay());
-  const trainingDays = split?.days.filter((day) => day.exercises.length > 0) ?? [];
-
-  let upcomingWeekday = today;
-  let upcomingDelta = 7;
-
-  trainingDays.forEach((day) => {
-    const delta = (day.weekday - today + 7) % 7;
-    if (delta < upcomingDelta) {
-      upcomingWeekday = day.weekday;
-      upcomingDelta = delta;
-    }
-  });
-
-  const focusWeekday = activeSession?.weekday ?? upcomingWeekday;
-  const orderedDays = trainingDays
-    .map((day) => ({
-      day,
-      delta: (day.weekday - focusWeekday + 7) % 7,
-    }))
-    .sort((a, b) => a.delta - b.delta)
-    .map((entry) => entry.day);
-  const primaryDay = orderedDays[0] ?? null;
-  const sameWeekdaySession = useQuery(
-    api.workoutSessions.getLatestCompletedForWeekday,
-    primaryDay ? { weekday: primaryDay.weekday } : "skip"
-  );
-
-  if (split === undefined || activeSession === undefined || statistics === undefined) {
+  if (isLoading) {
     return (
       <ScreenWrapper>
         <Text className="text-text-secondary">Loading...</Text>
@@ -69,6 +47,8 @@ export default function OverviewScreen() {
       </ScreenWrapper>
     );
   }
+
+  const loadedStatistics = statistics!;
 
   return (
     <ScreenWrapper>
@@ -133,11 +113,7 @@ export default function OverviewScreen() {
             <Text className="text-sm text-text-tertiary">
               Last {weekdayToLabel(primaryDay.weekday).toLowerCase()} workout
             </Text>
-            {sameWeekdaySession === undefined ? (
-              <View className="rounded-2xl border border-border bg-card p-4">
-                <Text className="text-sm text-text-tertiary">Loading workout comparison...</Text>
-              </View>
-            ) : sameWeekdaySession ? (
+            {sameWeekdaySession ? (
               <View className="gap-3 rounded-2xl border border-border bg-card p-4">
                 <View className="gap-1">
                   <Text className="text-base font-semibold text-text-primary">
@@ -214,21 +190,21 @@ export default function OverviewScreen() {
           </View>
         </View>
 
-        {statistics.summary.totalSessions > 0 ? (
+        {loadedStatistics.summary.totalSessions > 0 ? (
           <View className="gap-2">
             <Text className="text-sm text-text-tertiary">Training momentum</Text>
             <View className="flex-row flex-wrap gap-3">
               <OverviewMetricCard
                 label="Completed sessions"
-                value={formatStatNumber(statistics.summary.totalSessions)}
+                value={formatStatNumber(loadedStatistics.summary.totalSessions)}
               />
               <OverviewMetricCard
                 label="Total volume"
-                value={formatVolumeKg(statistics.summary.totalVolumeKg)}
+                value={formatVolumeKg(loadedStatistics.summary.totalVolumeKg)}
               />
               <OverviewMetricCard
                 label="Avg. session time"
-                value={formatDurationMs(statistics.summary.averageSessionDurationMs)}
+                value={formatDurationMs(loadedStatistics.summary.averageSessionDurationMs)}
               />
             </View>
             <Pressable onPress={() => router.push("/statistics/history")} className="self-start">
