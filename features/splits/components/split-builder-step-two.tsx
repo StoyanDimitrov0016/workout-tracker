@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { ExerciseRow } from "@/features/splits/components/exercise-row";
 import type { BuilderDay, BuilderExercise } from "@/features/splits/components/split-builder-types";
 import { SplitBuilderStepHeader } from "@/features/splits/components/split-builder-step-header";
+import type { ExerciseValidationResult } from "@/features/splits/utils/validation";
 
 type SplitBuilderStepTwoProps = {
   trainingDays: BuilderDay[];
@@ -11,6 +12,9 @@ type SplitBuilderStepTwoProps = {
   copyMenuWeekday: number | null;
   submitLabel: string;
   isSaving: boolean;
+  saveErrorMessage: string | null;
+  validationErrorsByExerciseKey: Map<string, ExerciseValidationResult>;
+  totalInvalidFields: number;
   onToggleExpandedExercise: (key: string) => void;
   onUpdateExercise: (weekday: number, index: number, next: Partial<BuilderExercise>) => void;
   onRemoveExercise: (weekday: number, index: number) => void;
@@ -28,6 +32,9 @@ export function SplitBuilderStepTwo({
   copyMenuWeekday,
   submitLabel,
   isSaving,
+  saveErrorMessage,
+  validationErrorsByExerciseKey,
+  totalInvalidFields,
   onToggleExpandedExercise,
   onUpdateExercise,
   onRemoveExercise,
@@ -44,6 +51,18 @@ export function SplitBuilderStepTwo({
         title="Configure details"
         description="Set the sets, reps, and rest for each exercise."
       />
+      {saveErrorMessage ? (
+        <View className="rounded-2xl border border-status-error/20 bg-status-error/10 p-4">
+          <Text className="text-sm text-status-error">{saveErrorMessage}</Text>
+        </View>
+      ) : null}
+      {totalInvalidFields > 0 ? (
+        <View className="rounded-2xl border border-status-error/20 bg-status-error/10 p-4">
+          <Text className="text-sm text-status-error">
+            Fix {totalInvalidFields} invalid field{totalInvalidFields === 1 ? "" : "s"} before saving.
+          </Text>
+        </View>
+      ) : null}
 
       {trainingDays.length === 0 ? (
         <View className="gap-3 rounded-2xl border border-border bg-card p-4">
@@ -129,11 +148,14 @@ export function SplitBuilderStepTwo({
                   <View className="gap-2">
                     {day.exercises.map((exercise, exerciseIndex) => {
                       const exerciseKey = `${day.weekday}-${exerciseIndex}`;
+                      const validation = validationErrorsByExerciseKey.get(exerciseKey);
                       return (
                         <ExerciseRow
                           key={exerciseKey}
                           name={exercise.exerciseName}
                           setTargets={exercise.setTargets}
+                          errors={validation?.errors}
+                          invalidFieldCount={validation?.invalidFieldCount ?? 0}
                           isExpanded={expandedExerciseKey === exerciseKey}
                           onToggleExpanded={() => onToggleExpandedExercise(exerciseKey)}
                           onChange={(next) => onUpdateExercise(day.weekday, exerciseIndex, next)}
@@ -155,8 +177,10 @@ export function SplitBuilderStepTwo({
         </Pressable>
         <Pressable
           onPress={onSave}
-          disabled={isSaving}
-          className={`flex-1 rounded-xl py-3 ${isSaving ? "bg-primary/60" : "bg-primary"}`}
+          disabled={isSaving || totalInvalidFields > 0}
+          className={`flex-1 rounded-xl py-3 ${
+            isSaving || totalInvalidFields > 0 ? "bg-primary/60" : "bg-primary"
+          }`}
         >
           <Text className="text-center font-semibold text-white">
             {isSaving ? "Saving..." : submitLabel}
