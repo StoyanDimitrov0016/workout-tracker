@@ -1,10 +1,9 @@
-import { useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
-import { api } from "@/convex/_generated/api";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
+import { splitResource } from "@/features/splits/data/split-resource";
 import { formatSetTargetsSummary } from "@/features/splits/utils/targets";
 import {
   useValidatedLocalSearchParam,
@@ -14,7 +13,7 @@ import {
 export default function TrainingSplitDay() {
   const router = useRouter();
   const weekday = useValidatedLocalSearchParam("weekday", weekdayParamSchema);
-  const split = useQuery(api.splits.getMine);
+  const split = splitResource.useMine();
 
   if (split === undefined) {
     return (
