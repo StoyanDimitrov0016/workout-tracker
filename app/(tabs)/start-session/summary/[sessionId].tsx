@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
-import { api } from "@/convex/_generated/api";
+import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import {
   convexIdParamSchema,
@@ -16,11 +15,8 @@ import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/form
 export default function WorkoutSummaryScreen() {
   const router = useRouter();
   const sessionId = useValidatedLocalSearchParam("sessionId", convexIdParamSchema<"workoutSessions">());
-  const reopenSession = useMutation(api.workoutSessions.reopen);
-  const session = useQuery(
-    api.workoutSessions.getCompletedById,
-    sessionId !== null ? { sessionId } : "skip"
-  );
+  const reopenSession = workoutSessionResource.useReopen();
+  const session = workoutSessionResource.useSummary(sessionId);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isReopening, setIsReopening] = useState(false);
 

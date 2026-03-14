@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Text } from "react-native";
-import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "expo-router";
+import { useQuery } from "convex/react";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
 import { ActiveSessionWorkspace } from "@/features/start-session/components/active-session-workspace";
 import { StartSessionEmptyState } from "@/features/start-session/components/start-session-empty-state";
 import { UpcomingSessionPreview } from "@/features/start-session/components/upcoming-session-preview";
+import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -16,9 +17,9 @@ function getErrorMessage(error: unknown, fallback: string) {
 export function StartSessionScreen() {
   const router = useRouter();
   const split = useQuery(api.splits.getMine);
-  const activeSession = useQuery(api.workoutSessions.getActive);
-  const upcomingAvailability = useQuery(api.workoutSessions.getUpcomingAvailability);
-  const startSession = useMutation(api.workoutSessions.startFromUpcomingDay);
+  const activeSession = workoutSessionResource.useActive();
+  const upcomingAvailability = workoutSessionResource.useUpcomingAvailability();
+  const startSession = workoutSessionResource.useStart();
   const [startErrorMessage, setStartErrorMessage] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
 
