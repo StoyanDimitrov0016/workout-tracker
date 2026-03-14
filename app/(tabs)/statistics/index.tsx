@@ -79,7 +79,12 @@ export default function StatisticsTab() {
         </View>
 
         <View className="gap-3">
-          <Text className="text-base font-semibold text-text-primary">Recent sessions</Text>
+          <View className="flex-row items-center justify-between">
+            <Text className="text-base font-semibold text-text-primary">Recent sessions</Text>
+            <Pressable onPress={() => router.push("/statistics/history")}>
+              <Text className="text-sm font-semibold text-primary">View all</Text>
+            </Pressable>
+          </View>
           <View className="gap-3">
             {statistics.recentSessions.map((session) => (
               <RecentSessionCard
@@ -93,6 +98,12 @@ export default function StatisticsTab() {
                 totalReps={session.totalReps}
                 totalVolumeKg={session.totalVolumeKg}
                 durationMs={session.durationMs}
+                onPress={() =>
+                  router.push({
+                    pathname: "/statistics/session/[sessionId]",
+                    params: { sessionId: session._id },
+                  })
+                }
               />
             ))}
           </View>

@@ -251,6 +251,98 @@ export const getStatisticsOverview = query({
   },
 });
 
+export const listCompleted = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userToken = await requireAuth(ctx);
+    const sessions = await ctx.db
+      .query("workoutSessions")
+      .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
+      .order("desc")
+      .take(args.limit ?? 20);
+
+    return sessions.map((session) => {
+      const totals = getSessionTotals(session);
+      const durationMs =
+        session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
+
+      return {
+        _id: session._id,
+        title: session.title,
+        weekday: session.weekday,
+        startedAt: session.startedAt,
+        completedAt: session.completedAt ?? null,
+        exerciseCount: session.exercises.length,
+        doneExercises: totals.doneExercises,
+        totalSets: totals.totalSets,
+        totalReps: totals.totalReps,
+        totalVolumeKg: totals.totalVolumeKg,
+        durationMs,
+      };
+    });
+  },
+});
+
+export const getCompletedById = query({
+  args: {
+    sessionId: v.id("workoutSessions"),
+  },
+  handler: async (ctx, args) => {
+    const userToken = await requireAuth(ctx);
+    const session = await ctx.db.get(args.sessionId);
+
+    if (!session) return null;
+    if (session.userToken !== userToken) throw new Error("Forbidden");
+    if (session.status !== "completed") return null;
+
+    const totals = getSessionTotals(session);
+    const durationMs =
+      session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
+
+    return {
+      _id: session._id,
+      title: session.title,
+      weekday: session.weekday,
+      startedAt: session.startedAt,
+      completedAt: session.completedAt ?? null,
+      durationMs,
+      totalSets: totals.totalSets,
+      totalReps: totals.totalReps,
+      totalVolumeKg: totals.totalVolumeKg,
+      doneExercises: totals.doneExercises,
+      exerciseCount: session.exercises.length,
+      exercises: session.exercises.map((exercise) => {
+        const exerciseTotals = exercise.performedSets.reduce(
+          (acc, set) => {
+            acc.totalSets += 1;
+            if (set.reps !== null) {
+              acc.totalReps += set.reps;
+            }
+            if (set.reps !== null && set.weightKg !== null) {
+              acc.totalVolumeKg += set.reps * set.weightKg;
+            }
+            return acc;
+          },
+          { totalSets: 0, totalReps: 0, totalVolumeKg: 0 }
+        );
+
+        return {
+          exerciseId: exercise.exerciseId,
+          exerciseName: exercise.exerciseName,
+          isDone: exercise.isDone,
+          targetSets: exercise.targetSets,
+          performedSets: exercise.performedSets,
+          totalSets: exerciseTotals.totalSets,
+          totalReps: exerciseTotals.totalReps,
+          totalVolumeKg: exerciseTotals.totalVolumeKg,
+        };
+      }),
+    };
+  },
+});
+
 export const startFromUpcomingDay = mutation({
   args: {},
   handler: async (ctx) => {

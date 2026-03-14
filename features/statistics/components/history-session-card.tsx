@@ -1,10 +1,14 @@
 import { Pressable, Text, View } from "react-native";
 
 import { formatDateTime } from "@/features/measurements/utils/format-date-time";
-import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/features/statistics/utils/format-stat";
+import {
+  formatDurationMs,
+  formatStatNumber,
+  formatVolumeKg,
+} from "@/features/statistics/utils/format-stat";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 
-type RecentSessionCardProps = {
+type HistorySessionCardProps = {
   title: string;
   weekday: number;
   completedAt: number | null;
@@ -14,10 +18,10 @@ type RecentSessionCardProps = {
   totalReps: number;
   totalVolumeKg: number;
   durationMs: number | null;
-  onPress?: () => void;
+  onPress: () => void;
 };
 
-export function RecentSessionCard({
+export function HistorySessionCard({
   title,
   weekday,
   completedAt,
@@ -28,9 +32,9 @@ export function RecentSessionCard({
   totalVolumeKg,
   durationMs,
   onPress,
-}: RecentSessionCardProps) {
+}: HistorySessionCardProps) {
   return (
-    <Pressable onPress={onPress} disabled={!onPress} className="rounded-2xl border border-border bg-card p-4">
+    <Pressable onPress={onPress} className="rounded-2xl border border-border bg-card p-4">
       <View className="gap-3">
         <View className="gap-1">
           <Text className="text-base font-semibold text-text-primary">{title || "Training"}</Text>
@@ -60,11 +64,15 @@ export function RecentSessionCard({
 
         <View className="flex-row items-center justify-between">
           <Text className="text-sm text-text-secondary">Volume</Text>
-          <Text className="text-sm font-semibold text-text-primary">{formatVolumeKg(totalVolumeKg)}</Text>
+          <Text className="text-sm font-semibold text-text-primary">
+            {formatVolumeKg(totalVolumeKg)}
+          </Text>
         </View>
         <View className="flex-row items-center justify-between">
           <Text className="text-sm text-text-secondary">Duration</Text>
-          <Text className="text-sm font-semibold text-text-primary">{formatDurationMs(durationMs)}</Text>
+          <Text className="text-sm font-semibold text-text-primary">
+            {formatDurationMs(durationMs)}
+          </Text>
         </View>
       </View>
     </Pressable>
