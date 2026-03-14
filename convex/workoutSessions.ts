@@ -393,6 +393,43 @@ export const listCompleted = query({
   },
 });
 
+export const getLatestCompletedForWeekday = query({
+  args: {
+    weekday: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userToken = await requireAuth(ctx);
+    const sessions = await ctx.db
+      .query("workoutSessions")
+      .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
+      .order("desc")
+      .collect();
+
+    const session = sessions.find((item) => item.weekday === args.weekday);
+    if (!session) {
+      return null;
+    }
+
+    const totals = getSessionTotals(session);
+    const durationMs =
+      session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
+
+    return {
+      _id: session._id,
+      title: session.title,
+      weekday: session.weekday,
+      startedAt: session.startedAt,
+      completedAt: session.completedAt ?? null,
+      exerciseCount: session.exercises.length,
+      doneExercises: totals.doneExercises,
+      totalSets: totals.totalSets,
+      totalReps: totals.totalReps,
+      totalVolumeKg: totals.totalVolumeKg,
+      durationMs,
+    };
+  },
+});
+
 export const getCompletedById = query({
   args: {
     sessionId: v.id("workoutSessions"),

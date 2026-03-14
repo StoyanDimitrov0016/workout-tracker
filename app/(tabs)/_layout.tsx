@@ -65,6 +65,7 @@ export default function TabLayout() {
         name="statistics"
         options={{
           title: "Statistics",
+          popToTopOnBlur: true,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "stats-chart" : "stats-chart-outline"}
