@@ -8,6 +8,8 @@ type SetTargetInput = {
 interface ExerciseRowProps {
   name: string;
   setTargets: SetTargetInput[];
+  errors?: Array<{ reps?: string; restSec?: string }>;
+  invalidFieldCount?: number;
   isExpanded: boolean;
   onToggleExpanded: () => void;
   onChange: (next: { setTargets: SetTargetInput[] }) => void;
@@ -55,6 +57,8 @@ function buildSummary(setTargets: SetTargetInput[]) {
 export function ExerciseRow({
   name,
   setTargets,
+  errors,
+  invalidFieldCount = 0,
   isExpanded,
   onToggleExpanded,
   onChange,
@@ -90,6 +94,11 @@ export function ExerciseRow({
 
       <View className="gap-2">
         <Text className="text-xs text-text-tertiary">{summary}</Text>
+        {invalidFieldCount > 0 ? (
+          <Text className="text-xs font-semibold text-status-error">
+            {invalidFieldCount} invalid field{invalidFieldCount === 1 ? "" : "s"} to fix
+          </Text>
+        ) : null}
         <Pressable onPress={onToggleExpanded} className="rounded-lg border border-border px-2 py-2">
           <Text className="text-center text-xs font-semibold text-text-secondary">
             {isExpanded ? "Hide sets" : "Edit sets"}
@@ -123,6 +132,9 @@ export function ExerciseRow({
                     placeholder="0"
                     placeholderTextColor="#9ca3af"
                   />
+                  {errors?.[index]?.reps ? (
+                    <Text className="mt-1 text-[11px] text-status-error">{errors[index]?.reps}</Text>
+                  ) : null}
                 </View>
                 <View className="flex-1">
                   <Text className="text-xs text-text-tertiary">Rest (sec)</Text>
@@ -134,6 +146,11 @@ export function ExerciseRow({
                     placeholder="0"
                     placeholderTextColor="#9ca3af"
                   />
+                  {errors?.[index]?.restSec ? (
+                    <Text className="mt-1 text-[11px] text-status-error">
+                      {errors[index]?.restSec}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
             </View>

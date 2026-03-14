@@ -14,6 +14,10 @@ import {
 import { SplitBuilderStepOne } from "@/features/splits/components/split-builder-step-one";
 import { SplitBuilderStepTwo } from "@/features/splits/components/split-builder-step-two";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
+import {
+  parseValidatedPositiveInteger,
+  validateTrainingDays,
+} from "@/features/splits/utils/validation";
 
 interface SplitBuilderProps {
   initialSplit: SplitInput | null;
@@ -40,18 +44,6 @@ function createDefaultSetTargets(count: number) {
 
 function ensureSetTargets(setTargets: BuilderSetTarget[]) {
   return setTargets.length > 0 ? setTargets : createDefaultSetTargets(1);
-}
-
-function parseOptionalNumber(value: string) {
-  const trimmed = value.trim();
-  if (trimmed === "") return undefined;
-  const parsed = Number(trimmed);
-  if (Number.isNaN(parsed)) return undefined;
-  return Math.max(0, parsed);
-}
-
-function parseRequiredNumber(value: string) {
-  return parseOptionalNumber(value) ?? 0;
 }
 
 function getPlaceholderForIndex(index: number) {
@@ -99,6 +91,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
   const [expandedExerciseKey, setExpandedExerciseKey] = useState<string | null>(null);
   const [copyMenuWeekday, setCopyMenuWeekday] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
   const searchResults = useQuery(api.exercises.searchByName, {
     text: debouncedText,
@@ -114,6 +107,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
   const hasTrainingDays = trainingDays.length > 0;
   const hasExercises = trainingDays.some((day) => day.exercises.length > 0);
   const canContinue = hasTrainingDays && hasExercises;
+  const validationSummary = useMemo(() => validateTrainingDays(days), [days]);
 
   const setStepAndReset = (nextStep: 1 | 2) => {
     setStep(nextStep);
@@ -122,6 +116,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
     setCopyMenuWeekday(null);
     setSearchText("");
     setShowAllExercises(false);
+    setSaveErrorMessage(null);
   };
 
   const toggleTraining = (weekday: number) => {
@@ -140,10 +135,12 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
   };
 
   const updateTitle = (weekday: number, title: string) => {
+    setSaveErrorMessage(null);
     setDays((prev) => prev.map((day) => (day.weekday === weekday ? { ...day, title } : day)));
   };
 
   const updateExercise = (weekday: number, index: number, next: Partial<BuilderExercise>) => {
+    setSaveErrorMessage(null);
     setDays((prev) =>
       prev.map((day) => {
         if (day.weekday !== weekday) return day;
@@ -156,6 +153,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
 
   const removeExercise = (weekday: number, index: number) => {
     const exerciseKey = `${weekday}-${index}`;
+    setSaveErrorMessage(null);
     setDays((prev) =>
       prev.map((day) =>
         day.weekday === weekday
@@ -169,6 +167,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
   };
 
   const addExercise = (weekday: number, exercise: { _id: Id<"exercises">; name: string }) => {
+    setSaveErrorMessage(null);
     setDays((prev) =>
       prev.map((day) => {
         if (day.weekday !== weekday) return day;
@@ -194,6 +193,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
     }));
 
   const copyExercisesToDay = (sourceWeekday: number, targetWeekday: number) => {
+    setSaveErrorMessage(null);
     setDays((prev) =>
       prev.map((day) => {
         if (day.weekday === sourceWeekday) return day;
@@ -213,6 +213,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
   };
 
   const copyExercisesToAll = (sourceWeekday: number) => {
+    setSaveErrorMessage(null);
     setDays((prev) => {
       const source = prev.find((day) => day.weekday === sourceWeekday);
       if (!source) return prev;
@@ -227,6 +228,12 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
   };
 
   const handleSave = async () => {
+    if (validationSummary.hasErrors) {
+      setSaveErrorMessage("Fix the highlighted set targets before saving your split.");
+      return;
+    }
+
+    setSaveErrorMessage(null);
     setIsSaving(true);
     const payloadDays = days
       .filter((day) => day.isTraining)
@@ -237,8 +244,8 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
           exerciseId: exercise.exerciseId,
           exerciseName: exercise.exerciseName,
           setTargets: ensureSetTargets(exercise.setTargets).map((set) => ({
-            reps: parseRequiredNumber(set.reps),
-            restSec: parseRequiredNumber(set.restSec),
+            reps: parseValidatedPositiveInteger(set.reps),
+            restSec: parseValidatedPositiveInteger(set.restSec),
           })),
         })),
       }));
@@ -246,6 +253,8 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
     try {
       await saveSplit({ name: name.trim() || "My Split", days: payloadDays });
       onSaved();
+    } catch (error) {
+      setSaveErrorMessage(error instanceof Error ? error.message : "Could not save your split.");
     } finally {
       setIsSaving(false);
     }
@@ -282,7 +291,10 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
         canContinue={canContinue}
         hasTrainingDays={hasTrainingDays}
         hasExercises={hasExercises}
-        onNameChange={setName}
+        onNameChange={(value) => {
+          setSaveErrorMessage(null);
+          setName(value);
+        }}
         onToggleTraining={toggleTraining}
         onUpdateTitle={updateTitle}
         onRemoveExercise={removeExercise}
@@ -312,6 +324,9 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
       copyMenuWeekday={copyMenuWeekday}
       submitLabel={submitLabel}
       isSaving={isSaving}
+      saveErrorMessage={saveErrorMessage}
+      validationErrorsByExerciseKey={validationSummary.errorsByExerciseKey}
+      totalInvalidFields={validationSummary.totalInvalidFields}
       onToggleExpandedExercise={(exerciseKey) =>
         setExpandedExerciseKey((prev) => (prev === exerciseKey ? null : exerciseKey))
       }
