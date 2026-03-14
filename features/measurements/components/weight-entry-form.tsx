@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { api } from "@/convex/_generated/api";
+import { MeasurementSaveFeedback } from "@/features/measurements/components/measurement-save-feedback";
 import { WeightEntryAdjuster } from "@/features/measurements/components/weight-entry-adjuster";
 import type { WeightEntryFormValues } from "@/features/measurements/schemas/weight-entry-schema";
 import { weightEntrySchema } from "@/features/measurements/schemas/weight-entry-schema";
@@ -26,6 +27,8 @@ export function WeightEntryForm() {
   });
 
   const [deltaKg, setDeltaKg] = useState(0);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (latestWeightKg === null || isDirty) return;
@@ -41,6 +44,8 @@ export function WeightEntryForm() {
     if (latestWeightKg === null) return;
 
     const nextValue = clampWeight(latestWeightKg + delta);
+    setSaveErrorMessage(null);
+    setSuccessMessage(null);
     setDeltaKg(delta);
     setValue("weightKg", formatWeightKg(nextValue), {
       shouldDirty: true,
@@ -53,14 +58,20 @@ export function WeightEntryForm() {
     if (parsed === null) return;
 
     try {
+      setSaveErrorMessage(null);
       await addWeightEntry({ weightKg: parsed });
       setValue("weightKg", formatWeightKg(parsed), {
         shouldDirty: false,
         shouldValidate: true,
       });
       setDeltaKg(0);
-    } catch {
+      setSuccessMessage("Weight entry saved.");
+    } catch (error) {
       setValue("weightKg", values.weightKg, { shouldValidate: true });
+      setSuccessMessage(null);
+      setSaveErrorMessage(
+        error instanceof Error ? error.message : "Could not save your weight entry."
+      );
     }
   };
 
@@ -75,6 +86,8 @@ export function WeightEntryForm() {
             value={value ?? ""}
             onChangeText={(text) => {
               setDeltaKg(0);
+              setSaveErrorMessage(null);
+              setSuccessMessage(null);
               onChange(text);
             }}
             onBlur={onBlur}
@@ -92,6 +105,12 @@ export function WeightEntryForm() {
       />
       {errors.weightKg ? (
         <Text className="text-sm text-status-error">{errors.weightKg.message}</Text>
+      ) : null}
+      {saveErrorMessage ? (
+        <MeasurementSaveFeedback kind="error" message={saveErrorMessage} />
+      ) : null}
+      {successMessage ? (
+        <MeasurementSaveFeedback kind="success" message={successMessage} />
       ) : null}
       <Pressable
         onPress={handleSubmit(onSubmit)}

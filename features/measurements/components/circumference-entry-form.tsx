@@ -1,16 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "convex/react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { api } from "@/convex/_generated/api";
+import { MeasurementSaveFeedback } from "@/features/measurements/components/measurement-save-feedback";
 import {
   circumferenceFieldNames,
   circumferenceLabels,
 } from "@/features/measurements/constants/circumference-fields";
-import { circumferenceSchema } from "@/features/measurements/schemas/circumference-schema";
-import type { CircumferenceFormValues } from "@/features/measurements/schemas/circumference-schema";
+import {
+  circumferenceSchema,
+  type CircumferenceFormValues,
+} from "@/features/measurements/schemas/circumference-schema";
 import type { CircumferenceMutationInput } from "@/features/measurements/types/circumference";
 import { parseMeasurementInput } from "@/features/measurements/utils/parse-measurement-input";
 
@@ -19,6 +22,15 @@ const defaultValues = circumferenceFieldNames.reduce((acc, key) => {
   return acc;
 }, {} as CircumferenceFormValues);
 
+type MeasurementFieldProps = {
+  control: ReturnType<typeof useForm<CircumferenceFormValues>>["control"];
+  errorMessage?: string;
+  inputClassName: string;
+  name: keyof CircumferenceFormValues;
+  onEdit: () => void;
+  label: string;
+};
+
 function FieldLabel({ text }: { text: string }) {
   return <Text className="text-xs text-text-secondary">{text}</Text>;
 }
@@ -26,6 +38,39 @@ function FieldLabel({ text }: { text: string }) {
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return <Text className="text-xs text-status-error">{message}</Text>;
+}
+
+function MeasurementField({
+  control,
+  errorMessage,
+  inputClassName,
+  label,
+  name,
+  onEdit,
+}: MeasurementFieldProps) {
+  return (
+    <View className="flex-1 gap-2">
+      <FieldLabel text={label} />
+      <Controller
+        control={control}
+        name={name}
+        render={({ field: { onBlur, onChange, value } }) => (
+          <TextInput
+            value={value}
+            onChangeText={(text) => {
+              onEdit();
+              onChange(text);
+            }}
+            onBlur={onBlur}
+            keyboardType="decimal-pad"
+            className={inputClassName}
+            placeholderTextColor="#9ca3af"
+          />
+        )}
+      />
+      <FieldError message={errorMessage} />
+    </View>
+  );
 }
 
 export function CircumferenceEntryForm() {
@@ -39,6 +84,13 @@ export function CircumferenceEntryForm() {
     defaultValues,
     resolver: zodResolver(circumferenceSchema),
   });
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const clearFeedback = () => {
+    setSaveErrorMessage(null);
+    setSuccessMessage(null);
+  };
 
   const onSubmit = async (values: CircumferenceFormValues) => {
     const parsedValues = circumferenceFieldNames.reduce((acc, key) => {
@@ -47,8 +99,17 @@ export function CircumferenceEntryForm() {
       return acc;
     }, {} as CircumferenceMutationInput);
 
-    await addCircumferenceEntry(parsedValues);
-    reset(defaultValues);
+    try {
+      setSaveErrorMessage(null);
+      await addCircumferenceEntry(parsedValues);
+      reset(defaultValues);
+      setSuccessMessage("Circumference measurements saved.");
+    } catch (error) {
+      setSuccessMessage(null);
+      setSaveErrorMessage(
+        error instanceof Error ? error.message : "Could not save your measurements."
+      );
+    }
   };
 
   const inputClassName = useMemo(
@@ -62,247 +123,134 @@ export function CircumferenceEntryForm() {
 
       <View className="gap-3">
         <View className="flex-row gap-3">
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.neckCm} />
-            <Controller
-              control={control}
-              name="neckCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.neckCm?.message} />
-          </View>
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.chestCm} />
-            <Controller
-              control={control}
-              name="chestCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.chestCm?.message} />
-          </View>
+          <MeasurementField
+            control={control}
+            errorMessage={errors.neckCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.neckCm}
+            name="neckCm"
+            onEdit={clearFeedback}
+          />
+          <MeasurementField
+            control={control}
+            errorMessage={errors.chestCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.chestCm}
+            name="chestCm"
+            onEdit={clearFeedback}
+          />
         </View>
 
         <View className="flex-row gap-3">
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.waistCm} />
-            <Controller
-              control={control}
-              name="waistCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.waistCm?.message} />
-          </View>
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.hipsCm} />
-            <Controller
-              control={control}
-              name="hipsCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.hipsCm?.message} />
-          </View>
+          <MeasurementField
+            control={control}
+            errorMessage={errors.waistCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.waistCm}
+            name="waistCm"
+            onEdit={clearFeedback}
+          />
+          <MeasurementField
+            control={control}
+            errorMessage={errors.hipsCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.hipsCm}
+            name="hipsCm"
+            onEdit={clearFeedback}
+          />
         </View>
       </View>
 
       <View className="gap-3">
         <Text className="text-xs text-text-secondary">Arms</Text>
         <View className="flex-row gap-3">
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.upperArmLeftCm} />
-            <Controller
-              control={control}
-              name="upperArmLeftCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.upperArmLeftCm?.message} />
-          </View>
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.upperArmRightCm} />
-            <Controller
-              control={control}
-              name="upperArmRightCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.upperArmRightCm?.message} />
-          </View>
+          <MeasurementField
+            control={control}
+            errorMessage={errors.upperArmLeftCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.upperArmLeftCm}
+            name="upperArmLeftCm"
+            onEdit={clearFeedback}
+          />
+          <MeasurementField
+            control={control}
+            errorMessage={errors.upperArmRightCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.upperArmRightCm}
+            name="upperArmRightCm"
+            onEdit={clearFeedback}
+          />
         </View>
         <View className="flex-row gap-3">
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.forearmLeftCm} />
-            <Controller
-              control={control}
-              name="forearmLeftCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.forearmLeftCm?.message} />
-          </View>
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.forearmRightCm} />
-            <Controller
-              control={control}
-              name="forearmRightCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.forearmRightCm?.message} />
-          </View>
+          <MeasurementField
+            control={control}
+            errorMessage={errors.forearmLeftCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.forearmLeftCm}
+            name="forearmLeftCm"
+            onEdit={clearFeedback}
+          />
+          <MeasurementField
+            control={control}
+            errorMessage={errors.forearmRightCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.forearmRightCm}
+            name="forearmRightCm"
+            onEdit={clearFeedback}
+          />
         </View>
       </View>
 
       <View className="gap-3">
         <Text className="text-xs text-text-secondary">Legs</Text>
         <View className="flex-row gap-3">
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.thighLeftCm} />
-            <Controller
-              control={control}
-              name="thighLeftCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.thighLeftCm?.message} />
-          </View>
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.thighRightCm} />
-            <Controller
-              control={control}
-              name="thighRightCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.thighRightCm?.message} />
-          </View>
+          <MeasurementField
+            control={control}
+            errorMessage={errors.thighLeftCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.thighLeftCm}
+            name="thighLeftCm"
+            onEdit={clearFeedback}
+          />
+          <MeasurementField
+            control={control}
+            errorMessage={errors.thighRightCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.thighRightCm}
+            name="thighRightCm"
+            onEdit={clearFeedback}
+          />
         </View>
       </View>
 
       <View className="gap-3">
         <Text className="text-xs text-text-secondary">Calves</Text>
         <View className="flex-row gap-3">
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.calfLeftCm} />
-            <Controller
-              control={control}
-              name="calfLeftCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.calfLeftCm?.message} />
-          </View>
-          <View className="flex-1 gap-2">
-            <FieldLabel text={circumferenceLabels.calfRightCm} />
-            <Controller
-              control={control}
-              name="calfRightCm"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="decimal-pad"
-                  className={inputClassName}
-                  placeholderTextColor="#9ca3af"
-                />
-              )}
-            />
-            <FieldError message={errors.calfRightCm?.message} />
-          </View>
+          <MeasurementField
+            control={control}
+            errorMessage={errors.calfLeftCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.calfLeftCm}
+            name="calfLeftCm"
+            onEdit={clearFeedback}
+          />
+          <MeasurementField
+            control={control}
+            errorMessage={errors.calfRightCm?.message}
+            inputClassName={inputClassName}
+            label={circumferenceLabels.calfRightCm}
+            name="calfRightCm"
+            onEdit={clearFeedback}
+          />
         </View>
       </View>
+
+      {saveErrorMessage ? (
+        <MeasurementSaveFeedback kind="error" message={saveErrorMessage} />
+      ) : null}
+      {successMessage ? (
+        <MeasurementSaveFeedback kind="success" message={successMessage} />
+      ) : null}
 
       <Pressable
         onPress={handleSubmit(onSubmit)}
