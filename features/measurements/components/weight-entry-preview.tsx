@@ -1,14 +1,13 @@
-import { useMutation, useQuery } from "convex/react";
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { api } from "@/convex/_generated/api";
 import { WeightEntryItem } from "@/features/measurements/components/weight-entry-item";
 import { WEIGHT_PREVIEW_LIMIT } from "@/features/measurements/constants/weight";
+import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 
 export function WeightEntryPreview() {
-  const entries = useQuery(api.weights.listRecent, { limit: WEIGHT_PREVIEW_LIMIT });
-  const removeLatest = useMutation(api.weights.remove);
+  const entries = measurementsResource.weight.useRecent(WEIGHT_PREVIEW_LIMIT);
+  const removeLatest = measurementsResource.weight.useRemove();
   const [isRemoving, setIsRemoving] = useState(false);
   const latestEntryId = useMemo(() => entries?.[0]?._id ?? null, [entries]);
   const canUndo = Boolean(latestEntryId) && !isRemoving;

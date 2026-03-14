@@ -1,19 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-import { api } from "@/convex/_generated/api";
 import { MeasurementSaveFeedback } from "@/features/measurements/components/measurement-save-feedback";
 import { WeightEntryAdjuster } from "@/features/measurements/components/weight-entry-adjuster";
+import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import type { WeightEntryFormValues } from "@/features/measurements/schemas/weight-entry-schema";
 import { weightEntrySchema } from "@/features/measurements/schemas/weight-entry-schema";
 import { clampWeight, formatWeightKg, parseWeightKg } from "@/features/measurements/utils/weight";
 
 export function WeightEntryForm() {
-  const addWeightEntry = useMutation(api.weights.create);
-  const recentEntries = useQuery(api.weights.listRecent, { limit: 1 });
+  const addWeightEntry = measurementsResource.weight.useCreate();
+  const recentEntries = measurementsResource.weight.useRecent(1);
   const latestWeightKg = recentEntries?.[0]?.weightKg ?? null;
 
   const {

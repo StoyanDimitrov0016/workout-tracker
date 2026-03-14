@@ -1,11 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "convex/react";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-import { api } from "@/convex/_generated/api";
 import { MeasurementSaveFeedback } from "@/features/measurements/components/measurement-save-feedback";
+import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import {
   circumferenceFieldNames,
   circumferenceLabels,
@@ -74,7 +73,7 @@ function MeasurementField({
 }
 
 export function CircumferenceEntryForm() {
-  const addCircumferenceEntry = useMutation(api.circumferences.create);
+  const addCircumferenceEntry = measurementsResource.circumferences.useCreate();
   const {
     control,
     handleSubmit,

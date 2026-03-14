@@ -1,7 +1,6 @@
-import { useQuery } from "convex/react";
 import { Text, View } from "react-native";
 
-import { api } from "@/convex/_generated/api";
+import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import { formatDateTime } from "@/utils/format/date-time";
 import { formatWeightKg } from "@/utils/format/weight";
 
@@ -15,7 +14,7 @@ function formatDelta(deltaKg: number | null) {
 }
 
 export function WeightTrendCard() {
-  const trend = useQuery(api.weights.getTrend, { limit: TREND_LIMIT });
+  const trend = measurementsResource.weight.useTrend(TREND_LIMIT);
 
   if (trend === undefined) {
     return (
