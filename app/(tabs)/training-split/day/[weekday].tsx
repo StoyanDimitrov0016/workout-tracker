@@ -1,16 +1,19 @@
 import { useQuery } from "convex/react";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import { formatSetTargetsSummary } from "@/features/splits/utils/targets";
+import {
+  useValidatedLocalSearchParam,
+  weekdayParamSchema,
+} from "@/hooks/use-validated-local-search-param";
 
 export default function TrainingSplitDay() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ weekday?: string }>();
-  const weekday = Number(params.weekday);
+  const weekday = useValidatedLocalSearchParam("weekday", weekdayParamSchema);
   const split = useQuery(api.splits.getMine);
 
   if (split === undefined) {
@@ -21,7 +24,7 @@ export default function TrainingSplitDay() {
     );
   }
 
-  if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
+  if (weekday === null) {
     return (
       <ScreenWrapper>
         <Text className="text-lg font-semibold text-text-primary">Invalid weekday.</Text>

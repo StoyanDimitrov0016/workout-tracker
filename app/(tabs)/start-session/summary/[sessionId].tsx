@@ -1,23 +1,25 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
+import {
+  convexIdParamSchema,
+  useValidatedLocalSearchParam,
+} from "@/hooks/use-validated-local-search-param";
 import { formatDateTime } from "@/utils/format/date-time";
 import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
 
 export default function WorkoutSummaryScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ sessionId?: string }>();
-  const sessionId = params.sessionId as Id<"workoutSessions"> | undefined;
+  const sessionId = useValidatedLocalSearchParam("sessionId", convexIdParamSchema<"workoutSessions">());
   const reopenSession = useMutation(api.workoutSessions.reopen);
   const session = useQuery(
     api.workoutSessions.getCompletedById,
-    sessionId ? { sessionId } : "skip"
+    sessionId !== null ? { sessionId } : "skip"
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isReopening, setIsReopening] = useState(false);
@@ -26,7 +28,7 @@ export default function WorkoutSummaryScreen() {
     <ScreenWrapper>
       <Stack.Screen options={{ title: "Workout summary", headerTitle: "Workout summary" }} />
 
-      {sessionId === undefined ? (
+      {sessionId === null ? (
         <Text className="text-text-secondary">Invalid workout.</Text>
       ) : session === undefined ? (
         <Text className="text-text-secondary">Loading...</Text>

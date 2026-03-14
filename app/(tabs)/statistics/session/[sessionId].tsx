@@ -1,12 +1,15 @@
 import { useQuery } from "convex/react";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack } from "expo-router";
 import { Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import { formatSetTargetsSummary } from "@/features/splits/utils/targets";
+import {
+  convexIdParamSchema,
+  useValidatedLocalSearchParam,
+} from "@/hooks/use-validated-local-search-param";
 import { formatDateTime } from "@/utils/format/date-time";
 import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
 
@@ -16,18 +19,17 @@ function formatPerformedValue(value: number | null, suffix = "") {
 }
 
 export default function WorkoutSessionDetailScreen() {
-  const params = useLocalSearchParams<{ sessionId?: string }>();
-  const sessionId = params.sessionId as Id<"workoutSessions"> | undefined;
+  const sessionId = useValidatedLocalSearchParam("sessionId", convexIdParamSchema<"workoutSessions">());
   const session = useQuery(
     api.workoutSessions.getCompletedById,
-    sessionId ? { sessionId } : "skip"
+    sessionId !== null ? { sessionId } : "skip"
   );
 
   return (
     <ScreenWrapper>
       <Stack.Screen options={{ title: "Workout", headerTitle: "Workout" }} />
 
-      {sessionId === undefined ? (
+      {sessionId === null ? (
         <Text className="text-text-secondary">Invalid session.</Text>
       ) : session === undefined ? (
         <Text className="text-text-secondary">Loading...</Text>
