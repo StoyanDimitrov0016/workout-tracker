@@ -4,6 +4,7 @@ import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { MeasurementsSwitch } from "@/features/measurements/components/measurements-switch";
 import { WeightEntryForm } from "@/features/measurements/components/weight-entry-form";
 import { WeightEntryPreview } from "@/features/measurements/components/weight-entry-preview";
+import { WeightTrendCard } from "@/features/measurements/components/weight-trend-card";
 
 export default function MeasurementsWeightScreen() {
   return (
@@ -13,7 +14,7 @@ export default function MeasurementsWeightScreen() {
         <MeasurementsSwitch />
         <WeightEntryForm />
         <WeightEntryPreview />
-        {/* TODO: Weight chart + stats section */}
+        <WeightTrendCard />
       </View>
     </ScreenWrapper>
   );
