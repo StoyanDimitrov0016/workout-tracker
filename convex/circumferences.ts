@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAuth } from "./auth";
+import {
+  assertDailyUserWriteLimit,
+  assertPositiveLimit,
+  MAX_CIRCUMFERENCE_ENTRIES_PER_DAY,
+  MAX_CIRCUMFERENCE_QUERY_LIMIT,
+} from "./usageLimits";
 
 export const mostRecent = query({
   args: {},
@@ -17,6 +23,7 @@ export const mostRecent = query({
 export const listRecent = query({
   args: { limit: v.number() },
   handler: async (ctx, { limit }) => {
+    assertPositiveLimit(limit, MAX_CIRCUMFERENCE_QUERY_LIMIT, "Circumference limit");
     const userToken = await requireAuth(ctx);
     return await ctx.db
       .query("circumferences")
@@ -43,6 +50,13 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const userToken = await requireAuth(ctx);
+    await assertDailyUserWriteLimit(
+      ctx,
+      "circumferences",
+      userToken,
+      MAX_CIRCUMFERENCE_ENTRIES_PER_DAY,
+      "circumference entry"
+    );
     return await ctx.db.insert("circumferences", { userToken, ...args });
   },
 });
