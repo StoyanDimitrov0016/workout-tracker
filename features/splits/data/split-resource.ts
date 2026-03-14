@@ -15,6 +15,10 @@ export const splitResource = {
     return useQuery(api.splits.getMine);
   },
 
+  useMineWithDailyMuscleVolume() {
+    return useQuery(api.splits.getMineWithDailyMuscleVolume);
+  },
+
   useMuscles() {
     return useQuery(api.muscles.list);
   },
