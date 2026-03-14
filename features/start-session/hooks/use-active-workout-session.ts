@@ -262,8 +262,10 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
     try {
       await flushPendingSetSaves();
       await finishSession({ sessionId: session._id });
+      return session._id;
     } catch (error) {
       setErrorMessage(getErrorMessage(error, "Could not finish the session."));
+      return null;
     } finally {
       setIsFinishing(false);
     }
