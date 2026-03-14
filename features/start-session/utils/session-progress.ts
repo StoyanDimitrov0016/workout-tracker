@@ -1,33 +1,17 @@
 import type { Doc } from "@/convex/_generated/dataModel";
-
-type SessionSetDraft = {
-  reps: string;
-  weightKg: string;
-  restSec: string;
-};
-
-type SessionEntryDraft = {
-  isDone: boolean;
-  sets: SessionSetDraft[];
-};
-
-function parseOptionalNumber(value: string) {
-  const normalized = value.replace(",", ".").trim();
-  if (!normalized) return null;
-
-  const parsed = Number(normalized);
-  if (Number.isNaN(parsed) || parsed < 0) return null;
-
-  return parsed;
-}
+import {
+  parseSessionDraftNumber,
+  type SessionEntryDraft,
+  type SessionSetDraft,
+} from "@/features/start-session/utils/session-draft";
 
 function isLoggedDraftSet(
   set: SessionSetDraft,
   targetSet?: Doc<"workoutSessions">["exercises"][number]["targetSets"][number]
 ) {
-  const weightKg = parseOptionalNumber(set.weightKg);
-  const reps = parseOptionalNumber(set.reps);
-  const restSec = parseOptionalNumber(set.restSec);
+  const weightKg = parseSessionDraftNumber(set.weightKg);
+  const reps = parseSessionDraftNumber(set.reps);
+  const restSec = parseSessionDraftNumber(set.restSec);
 
   if (weightKg !== null) {
     return true;

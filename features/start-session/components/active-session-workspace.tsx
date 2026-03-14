@@ -6,19 +6,14 @@ import { RestTimer } from "@/features/start-session/components/rest-timer";
 import { SessionExerciseCard } from "@/features/start-session/components/session-exercise-card";
 import { TIMER_PRESETS } from "@/features/start-session/constants/timer";
 import { useActiveWorkoutSession } from "@/features/start-session/hooks/use-active-workout-session";
+import { buildSessionEntryDrafts } from "@/features/start-session/utils/session-draft";
 import { useRestTimer } from "@/features/start-session/hooks/use-rest-timer";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import { formatDateTime } from "@/utils/format/date-time";
-import { formatWeightKg } from "@/utils/format/weight";
 
 type ActiveSessionWorkspaceProps = {
   session: Doc<"workoutSessions">;
 };
-
-function formatDraftNumber(value: number | null) {
-  if (value === null) return "";
-  return String(value);
-}
 
 export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps) {
   const router = useRouter();
@@ -33,6 +28,7 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
     toggleDone,
     finish,
   } = useActiveWorkoutSession(session);
+  const fallbackEntries = buildSessionEntryDrafts(session);
 
   return (
     <View className="gap-6">
@@ -66,14 +62,7 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
 
       <View className="gap-3">
         {session.exercises.map((exercise, exerciseIndex) => {
-          const entry = entries[String(exerciseIndex)] ?? {
-            isDone: exercise.isDone,
-            sets: exercise.performedSets.map((set) => ({
-              reps: formatDraftNumber(set.reps),
-              weightKg: set.weightKg === null ? "" : formatWeightKg(set.weightKg),
-              restSec: formatDraftNumber(set.restSec),
-            })),
-          };
+          const entry = entries[String(exerciseIndex)] ?? fallbackEntries[String(exerciseIndex)];
 
           return (
             <SessionExerciseCard

@@ -1,9 +1,22 @@
-import { type Infer, v } from "convex/values";
+import { v } from "convex/values";
 
 import { requireAuth } from "./auth";
 import type { Doc } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
+import {
+  buildCompletedSessionDetail,
+  buildCompletedSessionSummary,
+  buildNextPerformedSet,
+  buildReopenedSessionDocument,
+  buildSessionExercises,
+  findExistingTrainingDaySession,
+  getCurrentDateKey,
+  getSessionTotals,
+  getUpcomingTrainingDay,
+  hasMeaningfulSessionProgress,
+  updatePerformedSet,
+} from "./workoutSessionDomain";
 
 const performedSetSchema = v.object({
   reps: v.union(v.number(), v.null()),
@@ -24,68 +37,6 @@ const sessionExerciseSchema = v.object({
   isDone: v.boolean(),
 });
 
-type SessionExercise = Infer<typeof sessionExerciseSchema>;
-type PerformedSet = Infer<typeof performedSetSchema>;
-type TargetSet = Infer<typeof targetSetSchema>;
-
-function getUpcomingTrainingDay(split: Doc<"splits">) {
-  const trainingDays = split.days.filter((day) => day.exercises.length > 0);
-  if (trainingDays.length === 0) return null;
-
-  const jsDay = new Date().getDay();
-  const today = jsDay === 0 ? 7 : jsDay + 1;
-  let candidate = trainingDays[0];
-  let bestDelta = 7;
-
-  trainingDays.forEach((day) => {
-    const delta = (day.weekday - today + 7) % 7;
-    if (delta < bestDelta) {
-      candidate = day;
-      bestDelta = delta;
-    }
-  });
-
-  return candidate;
-}
-
-function padDatePart(value: number) {
-  return String(value).padStart(2, "0");
-}
-
-function getDateKeyFromTimestamp(timestamp: number) {
-  const date = new Date(timestamp);
-  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
-}
-
-function getCurrentDateKey() {
-  return getDateKeyFromTimestamp(Date.now());
-}
-
-function getSessionTrainingDateKey(session: Doc<"workoutSessions">) {
-  return session.trainingDateKey ?? getDateKeyFromTimestamp(session.startedAt);
-}
-
-function buildPerformedSets(targetSets: SessionExercise["targetSets"]) {
-  const safeTargetSets = targetSets.length > 0 ? targetSets : [{ reps: 0, restSec: 120 }];
-  return safeTargetSets.map((target) => ({
-    reps: target.reps,
-    weightKg: null,
-    restSec: target.restSec,
-  }));
-}
-
-function buildSessionExercises(
-  exercises: Doc<"splits">["days"][number]["exercises"]
-): SessionExercise[] {
-  return exercises.map((exercise) => ({
-    exerciseId: exercise.exerciseId,
-    exerciseName: exercise.exerciseName,
-    targetSets: exercise.setTargets,
-    performedSets: buildPerformedSets(exercise.setTargets),
-    isDone: false,
-  }));
-}
-
 async function getOwnedSession(
   ctx: MutationCtx,
   sessionId: Doc<"workoutSessions">["_id"],
@@ -95,51 +46,6 @@ async function getOwnedSession(
   if (!session) throw new Error("Session not found.");
   if (session.userToken !== userToken) throw new Error("Forbidden");
   return session;
-}
-
-function updatePerformedSet(
-  performedSet: PerformedSet,
-  next: {
-    reps?: number | null;
-    weightKg?: number | null;
-    restSec?: number | null;
-  }
-) {
-  return {
-    reps: next.reps === undefined ? performedSet.reps : next.reps,
-    weightKg: next.weightKg === undefined ? performedSet.weightKg : next.weightKg,
-    restSec: next.restSec === undefined ? performedSet.restSec : next.restSec,
-  };
-}
-
-function isLoggedSet(
-  performedSet: PerformedSet,
-  targetSet?: TargetSet
-) {
-  if (performedSet.weightKg !== null) {
-    return true;
-  }
-
-  if (!targetSet) {
-    return (
-      performedSet.reps !== null ||
-      performedSet.restSec !== null
-    );
-  }
-
-  return performedSet.reps !== targetSet.reps || performedSet.restSec !== targetSet.restSec;
-}
-
-function hasMeaningfulSessionProgress(session: Doc<"workoutSessions">) {
-  return session.exercises.some((exercise) => {
-    if (exercise.isDone) {
-      return true;
-    }
-
-    return exercise.performedSets.some((performedSet, setIndex) =>
-      isLoggedSet(performedSet, exercise.targetSets[setIndex])
-    );
-  });
 }
 
 async function getExistingTrainingDaySession(
@@ -153,43 +59,7 @@ async function getExistingTrainingDaySession(
     .withIndex("by_user", (q) => q.eq("userToken", userToken))
     .collect();
 
-  return (
-    sessions.find(
-      (session) =>
-        getSessionTrainingDateKey(session) === trainingDateKey && session.weekday === weekday
-    ) ?? null
-  );
-}
-
-function getSessionTotals(session: Doc<"workoutSessions">) {
-  let totalSets = 0;
-  let totalReps = 0;
-  let totalVolumeKg = 0;
-  let doneExercises = 0;
-
-  session.exercises.forEach((exercise) => {
-    if (exercise.isDone) {
-      doneExercises += 1;
-    }
-
-    totalSets += exercise.performedSets.length;
-
-    exercise.performedSets.forEach((set) => {
-      if (set.reps !== null) {
-        totalReps += set.reps;
-      }
-      if (set.reps !== null && set.weightKg !== null) {
-        totalVolumeKg += set.reps * set.weightKg;
-      }
-    });
-  });
-
-  return {
-    doneExercises,
-    totalSets,
-    totalReps,
-    totalVolumeKg,
-  };
+  return findExistingTrainingDaySession(sessions, weekday, trainingDateKey);
 }
 
 export const getActive = query({
@@ -255,25 +125,7 @@ export const getStatisticsOverview = query({
       .order("desc")
       .collect();
 
-    const recentSessions = sessions.slice(0, 6).map((session) => {
-      const totals = getSessionTotals(session);
-      const durationMs =
-        session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
-
-      return {
-        _id: session._id,
-        title: session.title,
-        weekday: session.weekday,
-        startedAt: session.startedAt,
-        completedAt: session.completedAt ?? null,
-        exerciseCount: session.exercises.length,
-        doneExercises: totals.doneExercises,
-        totalSets: totals.totalSets,
-        totalReps: totals.totalReps,
-        totalVolumeKg: totals.totalVolumeKg,
-        durationMs,
-      };
-    });
+    const recentSessions = sessions.slice(0, 6).map(buildCompletedSessionSummary);
 
     const exerciseStatsMap = new Map<
       string,
@@ -371,25 +223,7 @@ export const listCompleted = query({
       .order("desc")
       .take(args.limit ?? 20);
 
-    return sessions.map((session) => {
-      const totals = getSessionTotals(session);
-      const durationMs =
-        session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
-
-      return {
-        _id: session._id,
-        title: session.title,
-        weekday: session.weekday,
-        startedAt: session.startedAt,
-        completedAt: session.completedAt ?? null,
-        exerciseCount: session.exercises.length,
-        doneExercises: totals.doneExercises,
-        totalSets: totals.totalSets,
-        totalReps: totals.totalReps,
-        totalVolumeKg: totals.totalVolumeKg,
-        durationMs,
-      };
-    });
+    return sessions.map(buildCompletedSessionSummary);
   },
 });
 
@@ -410,23 +244,7 @@ export const getLatestCompletedForWeekday = query({
       return null;
     }
 
-    const totals = getSessionTotals(session);
-    const durationMs =
-      session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
-
-    return {
-      _id: session._id,
-      title: session.title,
-      weekday: session.weekday,
-      startedAt: session.startedAt,
-      completedAt: session.completedAt ?? null,
-      exerciseCount: session.exercises.length,
-      doneExercises: totals.doneExercises,
-      totalSets: totals.totalSets,
-      totalReps: totals.totalReps,
-      totalVolumeKg: totals.totalVolumeKg,
-      durationMs,
-    };
+    return buildCompletedSessionSummary(session);
   },
 });
 
@@ -442,49 +260,7 @@ export const getCompletedById = query({
     if (session.userToken !== userToken) throw new Error("Forbidden");
     if (session.status !== "completed") return null;
 
-    const totals = getSessionTotals(session);
-    const durationMs =
-      session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
-
-    return {
-      _id: session._id,
-      title: session.title,
-      weekday: session.weekday,
-      startedAt: session.startedAt,
-      completedAt: session.completedAt ?? null,
-      durationMs,
-      totalSets: totals.totalSets,
-      totalReps: totals.totalReps,
-      totalVolumeKg: totals.totalVolumeKg,
-      doneExercises: totals.doneExercises,
-      exerciseCount: session.exercises.length,
-      exercises: session.exercises.map((exercise) => {
-        const exerciseTotals = exercise.performedSets.reduce(
-          (acc, set) => {
-            acc.totalSets += 1;
-            if (set.reps !== null) {
-              acc.totalReps += set.reps;
-            }
-            if (set.reps !== null && set.weightKg !== null) {
-              acc.totalVolumeKg += set.reps * set.weightKg;
-            }
-            return acc;
-          },
-          { totalSets: 0, totalReps: 0, totalVolumeKg: 0 }
-        );
-
-        return {
-          exerciseId: exercise.exerciseId,
-          exerciseName: exercise.exerciseName,
-          isDone: exercise.isDone,
-          targetSets: exercise.targetSets,
-          performedSets: exercise.performedSets,
-          totalSets: exerciseTotals.totalSets,
-          totalReps: exerciseTotals.totalReps,
-          totalVolumeKg: exerciseTotals.totalVolumeKg,
-        };
-      }),
-    };
+    return buildCompletedSessionDetail(session);
   },
 });
 
@@ -598,18 +374,7 @@ export const addExerciseSet = mutation({
     const exercise = session.exercises[args.exerciseIndex];
     if (!exercise) throw new Error("Exercise not found.");
 
-    const nextTarget = exercise.targetSets[exercise.performedSets.length];
-    const nextSet = nextTarget
-      ? {
-          reps: nextTarget.reps,
-          weightKg: null,
-          restSec: nextTarget.restSec,
-        }
-      : {
-          reps: null,
-          weightKg: null,
-          restSec: null,
-        };
+    const nextSet = buildNextPerformedSet(exercise);
 
     const exercises = session.exercises.map((item, exerciseIndex) =>
       exerciseIndex === args.exerciseIndex
@@ -688,18 +453,7 @@ export const reopen = mutation({
       return session._id;
     }
 
-    const replacementSession: Omit<Doc<"workoutSessions">, "_id" | "_creationTime"> = {
-      userToken: session.userToken,
-      splitId: session.splitId,
-      ...(session.trainingDateKey ? { trainingDateKey: session.trainingDateKey } : {}),
-      weekday: session.weekday,
-      title: session.title,
-      status: "active",
-      startedAt: session.startedAt,
-      exercises: session.exercises,
-    };
-
-    await ctx.db.replace(args.sessionId, replacementSession);
+    await ctx.db.replace(args.sessionId, buildReopenedSessionDocument(session));
     return args.sessionId;
   },
 });
