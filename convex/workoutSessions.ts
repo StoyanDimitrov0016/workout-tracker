@@ -94,6 +94,37 @@ function updatePerformedSet(
   };
 }
 
+function getSessionTotals(session: Doc<"workoutSessions">) {
+  let totalSets = 0;
+  let totalReps = 0;
+  let totalVolumeKg = 0;
+  let doneExercises = 0;
+
+  session.exercises.forEach((exercise) => {
+    if (exercise.isDone) {
+      doneExercises += 1;
+    }
+
+    totalSets += exercise.performedSets.length;
+
+    exercise.performedSets.forEach((set) => {
+      if (set.reps !== null) {
+        totalReps += set.reps;
+      }
+      if (set.reps !== null && set.weightKg !== null) {
+        totalVolumeKg += set.reps * set.weightKg;
+      }
+    });
+  });
+
+  return {
+    doneExercises,
+    totalSets,
+    totalReps,
+    totalVolumeKg,
+  };
+}
+
 export const getActive = query({
   args: {},
   handler: async (ctx) => {
@@ -103,6 +134,120 @@ export const getActive = query({
       .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "active"))
       .order("desc")
       .first();
+  },
+});
+
+export const getStatisticsOverview = query({
+  args: {},
+  handler: async (ctx) => {
+    const userToken = await requireAuth(ctx);
+    const sessions = await ctx.db
+      .query("workoutSessions")
+      .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
+      .order("desc")
+      .collect();
+
+    const recentSessions = sessions.slice(0, 6).map((session) => {
+      const totals = getSessionTotals(session);
+      const durationMs =
+        session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
+
+      return {
+        _id: session._id,
+        title: session.title,
+        weekday: session.weekday,
+        startedAt: session.startedAt,
+        completedAt: session.completedAt ?? null,
+        exerciseCount: session.exercises.length,
+        doneExercises: totals.doneExercises,
+        totalSets: totals.totalSets,
+        totalReps: totals.totalReps,
+        totalVolumeKg: totals.totalVolumeKg,
+        durationMs,
+      };
+    });
+
+    const exerciseStatsMap = new Map<
+      string,
+      {
+        exerciseId: Doc<"workoutSessions">["exercises"][number]["exerciseId"];
+        exerciseName: string;
+        sessions: number;
+        totalSets: number;
+        totalReps: number;
+        totalVolumeKg: number;
+        lastPerformedAt: number;
+      }
+    >();
+
+    let totalSets = 0;
+    let totalReps = 0;
+    let totalVolumeKg = 0;
+    let totalDurationMs = 0;
+    let durationCount = 0;
+
+    sessions.forEach((session) => {
+      const totals = getSessionTotals(session);
+      totalSets += totals.totalSets;
+      totalReps += totals.totalReps;
+      totalVolumeKg += totals.totalVolumeKg;
+
+      if (session.completedAt !== undefined) {
+        totalDurationMs += Math.max(session.completedAt - session.startedAt, 0);
+        durationCount += 1;
+      }
+
+      session.exercises.forEach((exercise) => {
+        const key = String(exercise.exerciseId);
+        const current = exerciseStatsMap.get(key) ?? {
+          exerciseId: exercise.exerciseId,
+          exerciseName: exercise.exerciseName,
+          sessions: 0,
+          totalSets: 0,
+          totalReps: 0,
+          totalVolumeKg: 0,
+          lastPerformedAt: session.completedAt ?? session.startedAt,
+        };
+
+        current.sessions += 1;
+        current.totalSets += exercise.performedSets.length;
+
+        exercise.performedSets.forEach((set) => {
+          if (set.reps !== null) {
+            current.totalReps += set.reps;
+          }
+          if (set.reps !== null && set.weightKg !== null) {
+            current.totalVolumeKg += set.reps * set.weightKg;
+          }
+        });
+
+        current.lastPerformedAt = Math.max(
+          current.lastPerformedAt,
+          session.completedAt ?? session.startedAt
+        );
+        exerciseStatsMap.set(key, current);
+      });
+    });
+
+    const topExercises = Array.from(exerciseStatsMap.values())
+      .sort((a, b) => {
+        if (b.sessions !== a.sessions) return b.sessions - a.sessions;
+        if (b.totalSets !== a.totalSets) return b.totalSets - a.totalSets;
+        return a.exerciseName.localeCompare(b.exerciseName);
+      })
+      .slice(0, 8);
+
+    return {
+      summary: {
+        totalSessions: sessions.length,
+        totalSets,
+        totalReps,
+        totalVolumeKg,
+        averageSessionDurationMs: durationCount > 0 ? totalDurationMs / durationCount : null,
+      },
+      recentSessions,
+      topExercises,
+    };
   },
 });
 
