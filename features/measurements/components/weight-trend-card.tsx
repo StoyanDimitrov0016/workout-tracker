@@ -2,8 +2,8 @@ import { useQuery } from "convex/react";
 import { Text, View } from "react-native";
 
 import { api } from "@/convex/_generated/api";
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
-import { formatWeightKg } from "@/features/measurements/utils/weight";
+import { formatDateTime } from "@/utils/format/date-time";
+import { formatWeightKg } from "@/utils/format/weight";
 
 const TREND_LIMIT = 14;
 const CHART_HEIGHT = 120;

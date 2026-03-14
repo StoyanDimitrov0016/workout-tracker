@@ -4,11 +4,11 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
-import { formatWeightKg } from "@/features/measurements/utils/weight";
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
+import { formatDateTime } from "@/utils/format/date-time";
 import { OverviewMetricCard } from "@/features/overview/components/overview-metric-card";
 import { OverviewSplitDayCard } from "@/features/overview/components/overview-split-day-card";
-import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/features/statistics/utils/format-stat";
+import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
+import { formatWeightKg } from "@/utils/format/weight";
 import { jsDayToWeekday, weekdayToLabel } from "@/features/splits/constants/weekdays";
 
 export default function OverviewScreen() {

@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
+import { formatDateTime } from "@/utils/format/date-time";
 
 interface WeightEntryItemProps {
   weightKg: number;

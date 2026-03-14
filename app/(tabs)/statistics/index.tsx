@@ -7,11 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { ExerciseStatCard } from "@/features/statistics/components/exercise-stat-card";
 import { RecentSessionCard } from "@/features/statistics/components/recent-session-card";
 import { StatisticsSummaryCard } from "@/features/statistics/components/statistics-summary-card";
-import {
-  formatDurationMs,
-  formatStatNumber,
-  formatVolumeKg,
-} from "@/features/statistics/utils/format-stat";
+import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
 
 export default function StatisticsTab() {
   const router = useRouter();

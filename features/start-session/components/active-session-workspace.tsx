@@ -2,14 +2,14 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import type { Doc } from "@/convex/_generated/dataModel";
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
-import { formatWeightKg } from "@/features/measurements/utils/weight";
 import { RestTimer } from "@/features/start-session/components/rest-timer";
 import { SessionExerciseCard } from "@/features/start-session/components/session-exercise-card";
 import { TIMER_PRESETS } from "@/features/start-session/constants/timer";
 import { useActiveWorkoutSession } from "@/features/start-session/hooks/use-active-workout-session";
 import { useRestTimer } from "@/features/start-session/hooks/use-rest-timer";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
+import { formatDateTime } from "@/utils/format/date-time";
+import { formatWeightKg } from "@/utils/format/weight";
 
 type ActiveSessionWorkspaceProps = {
   session: Doc<"workoutSessions">;

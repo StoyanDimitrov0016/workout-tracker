@@ -3,8 +3,8 @@ import { useMutation } from "convex/react";
 
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
-import { formatWeightKg } from "@/features/measurements/utils/weight";
 import { canFinishSession } from "@/features/start-session/utils/session-progress";
+import { formatWeightKg } from "@/utils/format/weight";
 
 type SessionSetDraft = {
   reps: string;
