@@ -64,6 +64,7 @@ export default defineSchema({
   workoutSessions: defineTable({
     userToken: v.string(),
     splitId: v.optional(v.id("splits")),
+    trainingDateKey: v.optional(v.string()),
     weekday: v.number(),
     title: v.string(),
     status: v.union(v.literal("active"), v.literal("completed")),

@@ -1,4 +1,5 @@
-import { useQuery } from "convex/react";
+import { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
@@ -17,10 +18,13 @@ export default function WorkoutSummaryScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ sessionId?: string }>();
   const sessionId = params.sessionId as Id<"workoutSessions"> | undefined;
+  const reopenSession = useMutation(api.workoutSessions.reopen);
   const session = useQuery(
     api.workoutSessions.getCompletedById,
     sessionId ? { sessionId } : "skip"
   );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isReopening, setIsReopening] = useState(false);
 
   return (
     <ScreenWrapper>
@@ -34,6 +38,12 @@ export default function WorkoutSummaryScreen() {
         <Text className="text-text-secondary">Workout not found.</Text>
       ) : (
         <View className="gap-6">
+          {errorMessage ? (
+            <View className="rounded-2xl border border-status-error/20 bg-status-error/10 p-4">
+              <Text className="text-sm text-status-error">{errorMessage}</Text>
+            </View>
+          ) : null}
+
           <View className="gap-1">
             <Text className="text-sm text-text-tertiary">Workout complete</Text>
             <Text className="text-2xl font-semibold text-text-primary">
@@ -80,6 +90,31 @@ export default function WorkoutSummaryScreen() {
 
           <View className="gap-3">
             <Pressable
+              onPress={async () => {
+                if (!sessionId) return;
+                setErrorMessage(null);
+                setIsReopening(true);
+
+                try {
+                  await reopenSession({ sessionId });
+                  router.replace("/start-session");
+                } catch (error) {
+                  setErrorMessage(
+                    error instanceof Error ? error.message : "Could not reopen the workout."
+                  );
+                } finally {
+                  setIsReopening(false);
+                }
+              }}
+              disabled={isReopening}
+              className={`rounded-xl px-4 py-3 ${isReopening ? "bg-primary/60" : "bg-primary"}`}
+            >
+              <Text className="text-center font-semibold text-white">
+                {isReopening ? "Reopening..." : "Reopen workout"}
+              </Text>
+            </Pressable>
+
+            <Pressable
               onPress={() =>
                 router.replace({
                   pathname: "/statistics/session/[sessionId]",
@@ -96,13 +131,6 @@ export default function WorkoutSummaryScreen() {
               className="rounded-xl border border-border px-4 py-3"
             >
               <Text className="text-center font-semibold text-text-primary">Back to overview</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.replace("/start-session")}
-              className="rounded-xl border border-border px-4 py-3"
-            >
-              <Text className="text-center font-semibold text-text-primary">Start another session</Text>
             </Pressable>
           </View>
         </View>

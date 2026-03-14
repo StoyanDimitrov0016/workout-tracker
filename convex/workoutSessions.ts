@@ -2,7 +2,7 @@ import { type Infer, v } from "convex/values";
 
 import { requireAuth } from "./auth";
 import type { Doc } from "./_generated/dataModel";
-import type { MutationCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 
 const performedSetSchema = v.object({
@@ -26,6 +26,7 @@ const sessionExerciseSchema = v.object({
 
 type SessionExercise = Infer<typeof sessionExerciseSchema>;
 type PerformedSet = Infer<typeof performedSetSchema>;
+type TargetSet = Infer<typeof targetSetSchema>;
 
 function getUpcomingTrainingDay(split: Doc<"splits">) {
   const trainingDays = split.days.filter((day) => day.exercises.length > 0);
@@ -45,6 +46,23 @@ function getUpcomingTrainingDay(split: Doc<"splits">) {
   });
 
   return candidate;
+}
+
+function padDatePart(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function getDateKeyFromTimestamp(timestamp: number) {
+  const date = new Date(timestamp);
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
+}
+
+function getCurrentDateKey() {
+  return getDateKeyFromTimestamp(Date.now());
+}
+
+function getSessionTrainingDateKey(session: Doc<"workoutSessions">) {
+  return session.trainingDateKey ?? getDateKeyFromTimestamp(session.startedAt);
 }
 
 function buildPerformedSets(targetSets: SessionExercise["targetSets"]) {
@@ -94,6 +112,55 @@ function updatePerformedSet(
   };
 }
 
+function isLoggedSet(
+  performedSet: PerformedSet,
+  targetSet?: TargetSet
+) {
+  if (performedSet.weightKg !== null) {
+    return true;
+  }
+
+  if (!targetSet) {
+    return (
+      performedSet.reps !== null ||
+      performedSet.restSec !== null
+    );
+  }
+
+  return performedSet.reps !== targetSet.reps || performedSet.restSec !== targetSet.restSec;
+}
+
+function hasMeaningfulSessionProgress(session: Doc<"workoutSessions">) {
+  return session.exercises.some((exercise) => {
+    if (exercise.isDone) {
+      return true;
+    }
+
+    return exercise.performedSets.some((performedSet, setIndex) =>
+      isLoggedSet(performedSet, exercise.targetSets[setIndex])
+    );
+  });
+}
+
+async function getExistingTrainingDaySession(
+  ctx: MutationCtx | QueryCtx,
+  userToken: string,
+  weekday: number,
+  trainingDateKey: string
+) {
+  const sessions = await ctx.db
+    .query("workoutSessions")
+    .withIndex("by_user", (q) => q.eq("userToken", userToken))
+    .collect();
+
+  return (
+    sessions.find(
+      (session) =>
+        getSessionTrainingDateKey(session) === trainingDateKey && session.weekday === weekday
+    ) ?? null
+  );
+}
+
 function getSessionTotals(session: Doc<"workoutSessions">) {
   let totalSets = 0;
   let totalReps = 0;
@@ -134,6 +201,47 @@ export const getActive = query({
       .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "active"))
       .order("desc")
       .first();
+  },
+});
+
+export const getUpcomingAvailability = query({
+  args: {},
+  handler: async (ctx) => {
+    const userToken = await requireAuth(ctx);
+    const split = await ctx.db
+      .query("splits")
+      .withIndex("by_user", (q) => q.eq("userToken", userToken))
+      .unique();
+
+    if (!split) {
+      return { status: "no_split" as const };
+    }
+
+    const upcomingDay = getUpcomingTrainingDay(split);
+    if (!upcomingDay) {
+      return { status: "no_training_day" as const };
+    }
+
+    const trainingDateKey = getCurrentDateKey();
+    const existingSession = await getExistingTrainingDaySession(
+      ctx,
+      userToken,
+      upcomingDay.weekday,
+      trainingDateKey
+    );
+
+    if (existingSession?.status === "completed") {
+      return {
+        status: "completed_today" as const,
+        sessionId: existingSession._id,
+        day: upcomingDay,
+      };
+    }
+
+    return {
+      status: "available" as const,
+      day: upcomingDay,
+    };
   },
 });
 
@@ -347,6 +455,7 @@ export const startFromUpcomingDay = mutation({
   args: {},
   handler: async (ctx) => {
     const userToken = await requireAuth(ctx);
+    const trainingDateKey = getCurrentDateKey();
 
     const activeSession = await ctx.db
       .query("workoutSessions")
@@ -372,9 +481,21 @@ export const startFromUpcomingDay = mutation({
       throw new Error("Add exercises to your split before starting a session.");
     }
 
+    const existingSession = await getExistingTrainingDaySession(
+      ctx,
+      userToken,
+      upcomingDay.weekday,
+      trainingDateKey
+    );
+
+    if (existingSession?.status === "completed") {
+      throw new Error("You already completed this planned workout today.");
+    }
+
     return await ctx.db.insert("workoutSessions", {
       userToken,
       splitId: split._id,
+      trainingDateKey,
       weekday: upcomingDay.weekday,
       title: upcomingDay.title.trim() || "Training",
       status: "active",
@@ -495,12 +616,53 @@ export const finish = mutation({
     const session = await getOwnedSession(ctx, args.sessionId, userToken);
 
     if (session.status !== "active") return args.sessionId;
+    if (!hasMeaningfulSessionProgress(session)) {
+      throw new Error("Log at least one set or mark an exercise done before finishing.");
+    }
 
     await ctx.db.patch(args.sessionId, {
       status: "completed",
       completedAt: Date.now(),
     });
 
+    return args.sessionId;
+  },
+});
+
+export const reopen = mutation({
+  args: {
+    sessionId: v.id("workoutSessions"),
+  },
+  handler: async (ctx, args) => {
+    const userToken = await requireAuth(ctx);
+    const session = await getOwnedSession(ctx, args.sessionId, userToken);
+
+    const activeSession = await ctx.db
+      .query("workoutSessions")
+      .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "active"))
+      .order("desc")
+      .first();
+
+    if (activeSession && activeSession._id !== session._id) {
+      throw new Error("Finish or discard the active session before reopening another one.");
+    }
+
+    if (session.status === "active") {
+      return session._id;
+    }
+
+    const replacementSession: Omit<Doc<"workoutSessions">, "_id" | "_creationTime"> = {
+      userToken: session.userToken,
+      splitId: session.splitId,
+      ...(session.trainingDateKey ? { trainingDateKey: session.trainingDateKey } : {}),
+      weekday: session.weekday,
+      title: session.title,
+      status: "active",
+      startedAt: session.startedAt,
+      exercises: session.exercises,
+    };
+
+    await ctx.db.replace(args.sessionId, replacementSession);
     return args.sessionId;
   },
 });

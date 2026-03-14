@@ -4,6 +4,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { formatWeightKg } from "@/features/measurements/utils/weight";
+import { canFinishSession } from "@/features/start-session/utils/session-progress";
 
 type SessionSetDraft = {
   reps: string;
@@ -272,6 +273,7 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
   };
 
   return {
+    canFinish: canFinishSession(session, entries),
     entries,
     errorMessage,
     isFinishing,
