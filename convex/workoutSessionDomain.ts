@@ -60,6 +60,15 @@ export function getCurrentDateKey() {
   return getDateKeyFromTimestamp(Date.now());
 }
 
+export function getDateBoundsFromDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map((part) => Number.parseInt(part, 10));
+  const start = new Date(year, month - 1, day).getTime();
+  return {
+    start,
+    end: start + 24 * 60 * 60 * 1000,
+  };
+}
+
 export function getSessionTrainingDateKey(session: WorkoutSessionDoc) {
   return session.trainingDateKey ?? getDateKeyFromTimestamp(session.startedAt);
 }
