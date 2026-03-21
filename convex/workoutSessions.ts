@@ -5,6 +5,12 @@ import type { Doc } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 import {
+  MAX_SESSION_SETS_PER_EXERCISE,
+  MAX_SPLIT_EXERCISES_PER_DAY,
+  MAX_WORKOUT_HISTORY_LIMIT,
+  assertPositiveLimit,
+} from "./usageLimits";
+import {
   buildCompletedSessionDetail,
   buildCompletedSessionSummary,
   buildNextPerformedSet,
@@ -216,12 +222,14 @@ export const listCompleted = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const limit = args.limit ?? 20;
+    assertPositiveLimit(limit, MAX_WORKOUT_HISTORY_LIMIT, "Workout history limit");
     const userToken = await requireAuth(ctx);
     const sessions = await ctx.db
       .query("workoutSessions")
       .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
       .order("desc")
-      .take(args.limit ?? 20);
+      .take(limit);
 
     return sessions.map(buildCompletedSessionSummary);
   },
@@ -289,13 +297,16 @@ export const startFromUpcomingDay = mutation({
       throw new Error("Create a split before starting a session.");
     }
 
-    const upcomingDay = getUpcomingTrainingDay(split);
-    if (!upcomingDay) {
-      throw new Error("Add exercises to your split before starting a session.");
-    }
+      const upcomingDay = getUpcomingTrainingDay(split);
+      if (!upcomingDay) {
+        throw new Error("Add exercises to your split before starting a session.");
+      }
+      if (upcomingDay.exercises.length > MAX_SPLIT_EXERCISES_PER_DAY) {
+        throw new Error("This training day has too many exercises to start safely.");
+      }
 
-    const existingSession = await getExistingTrainingDaySession(
-      ctx,
+      const existingSession = await getExistingTrainingDaySession(
+        ctx,
       userToken,
       upcomingDay.weekday,
       trainingDateKey
@@ -369,12 +380,17 @@ export const addExerciseSet = mutation({
     const userToken = await requireAuth(ctx);
     const session = await getOwnedSession(ctx, args.sessionId, userToken);
 
-    if (session.status !== "active") throw new Error("Completed sessions cannot be edited.");
+      if (session.status !== "active") throw new Error("Completed sessions cannot be edited.");
 
-    const exercise = session.exercises[args.exerciseIndex];
-    if (!exercise) throw new Error("Exercise not found.");
+      const exercise = session.exercises[args.exerciseIndex];
+      if (!exercise) throw new Error("Exercise not found.");
+      if (exercise.performedSets.length >= MAX_SESSION_SETS_PER_EXERCISE) {
+        throw new Error(
+          `Each exercise can have at most ${MAX_SESSION_SETS_PER_EXERCISE} logged sets in one session.`
+        );
+      }
 
-    const nextSet = buildNextPerformedSet(exercise);
+      const nextSet = buildNextPerformedSet(exercise);
 
     const exercises = session.exercises.map((item, exerciseIndex) =>
       exerciseIndex === args.exerciseIndex

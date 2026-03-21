@@ -3,6 +3,10 @@ import { type Infer, v } from "convex/values";
 import { requireAuth } from "./auth";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+import {
+  MAX_SET_TARGETS_PER_EXERCISE,
+  MAX_SPLIT_EXERCISES_PER_DAY,
+} from "./usageLimits";
 
 const splitExerciseSchema = v.object({
   exerciseId: v.id("exercises"),
@@ -30,6 +34,16 @@ function normalizeDays(days: Array<Infer<typeof daySchema>>) {
     }
     if (seen.has(day.weekday)) {
       throw new Error("Weekdays must be unique.");
+    }
+    if (day.exercises.length > MAX_SPLIT_EXERCISES_PER_DAY) {
+      throw new Error(`Each training day can have at most ${MAX_SPLIT_EXERCISES_PER_DAY} exercises.`);
+    }
+    for (const exercise of day.exercises) {
+      if (exercise.setTargets.length > MAX_SET_TARGETS_PER_EXERCISE) {
+        throw new Error(
+          `Each exercise can have at most ${MAX_SET_TARGETS_PER_EXERCISE} set targets.`
+        );
+      }
     }
     seen.add(day.weekday);
   }
