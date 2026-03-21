@@ -1,13 +1,14 @@
-import { useQuery } from "convex/react";
-
-import { api } from "@/convex/_generated/api";
+import { measurementsResource } from "@/features/measurements/data/measurements-resource";
+import { splitResource } from "@/features/splits/data/split-resource";
+import { statisticsResource } from "@/features/statistics/data/statistics-resource";
+import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
 import { jsDayToWeekday } from "@/features/splits/constants/weekdays";
 
 export function useOverviewData() {
-  const split = useQuery(api.splits.getMineWithDailyMuscleVolume);
-  const weightSummary = useQuery(api.weights.getLatestAndAverage, { days: 7 });
-  const activeSession = useQuery(api.workoutSessions.getActive);
-  const statistics = useQuery(api.workoutSessions.getStatisticsOverview);
+  const split = splitResource.useMineWithDailyMuscleVolume();
+  const weightSummary = measurementsResource.weight.useLatestAndAverage(7);
+  const activeSession = workoutSessionResource.useActive();
+  const statistics = statisticsResource.useOverview();
 
   const today = jsDayToWeekday(new Date().getDay());
   const trainingDays = split?.days.filter((day) => day.exercises.length > 0) ?? [];
@@ -33,9 +34,8 @@ export function useOverviewData() {
     .map((entry) => entry.day);
 
   const primaryDay = orderedDays[0] ?? null;
-  const sameWeekdaySession = useQuery(
-    api.workoutSessions.getLatestCompletedForWeekday,
-    primaryDay ? { weekday: primaryDay.weekday } : "skip"
+  const sameWeekdaySession = workoutSessionResource.useLatestCompletedForWeekday(
+    primaryDay?.weekday ?? null
   );
 
   const isLoading =

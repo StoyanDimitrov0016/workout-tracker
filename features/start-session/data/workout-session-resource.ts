@@ -16,6 +16,13 @@ export const workoutSessionResource = {
     return useMutation(api.workoutSessions.finish);
   },
 
+  useLatestCompletedForWeekday(weekday: number | null) {
+    return useQuery(
+      api.workoutSessions.getLatestCompletedForWeekday,
+      weekday !== null ? { weekday } : "skip"
+    );
+  },
+
   useReopen() {
     return useMutation(api.workoutSessions.reopen);
   },
