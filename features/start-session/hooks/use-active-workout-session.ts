@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useMutation } from "convex/react";
 
-import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
 import { canFinishSession } from "@/features/start-session/utils/session-progress";
 import {
   buildSessionEntryDrafts,
@@ -23,10 +22,10 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
-  const updateExerciseSet = useMutation(api.workoutSessions.updateExerciseSet);
-  const addExerciseSet = useMutation(api.workoutSessions.addExerciseSet);
-  const toggleExerciseDone = useMutation(api.workoutSessions.toggleExerciseDone);
-  const finishSession = useMutation(api.workoutSessions.finish);
+  const updateExerciseSet = workoutSessionResource.useUpdateSet();
+  const addExerciseSet = workoutSessionResource.useAddSet();
+  const toggleExerciseDone = workoutSessionResource.useToggleDone();
+  const finishSession = workoutSessionResource.useFinish();
 
   const [entries, setEntries] = useState<Record<string, SessionEntryDraft>>(() =>
     buildSessionEntryDrafts(session)

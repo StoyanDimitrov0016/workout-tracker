@@ -1,14 +1,13 @@
-import { useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import { Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
-import { api } from "@/convex/_generated/api";
 import { HistorySessionCard } from "@/features/statistics/components/history-session-card";
+import { statisticsResource } from "@/features/statistics/data/statistics-resource";
 
 export default function WorkoutHistoryScreen() {
   const router = useRouter();
-  const sessions = useQuery(api.workoutSessions.listCompleted, { limit: 50 });
+  const sessions = statisticsResource.useHistory();
 
   return (
     <ScreenWrapper>

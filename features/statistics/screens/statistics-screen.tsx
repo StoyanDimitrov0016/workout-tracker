@@ -1,17 +1,16 @@
-import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
-import { api } from "@/convex/_generated/api";
 import { ExerciseStatCard } from "@/features/statistics/components/exercise-stat-card";
 import { RecentSessionCard } from "@/features/statistics/components/recent-session-card";
 import { StatisticsSummaryCard } from "@/features/statistics/components/statistics-summary-card";
+import { statisticsResource } from "@/features/statistics/data/statistics-resource";
 import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
 
 export function StatisticsScreen() {
   const router = useRouter();
-  const statistics = useQuery(api.workoutSessions.getStatisticsOverview);
+  const statistics = statisticsResource.useOverview();
 
   if (statistics === undefined) {
     return (

@@ -1,9 +1,8 @@
-import { useQuery } from "convex/react";
 import { Stack } from "expo-router";
 import { Text, View } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
-import { api } from "@/convex/_generated/api";
+import { statisticsResource } from "@/features/statistics/data/statistics-resource";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import { formatSetTargetsSummary } from "@/features/splits/utils/targets";
 import {
@@ -20,10 +19,7 @@ function formatPerformedValue(value: number | null, suffix = "") {
 
 export default function WorkoutSessionDetailScreen() {
   const sessionId = useValidatedLocalSearchParam("sessionId", convexIdParamSchema<"workoutSessions">());
-  const session = useQuery(
-    api.workoutSessions.getCompletedById,
-    sessionId !== null ? { sessionId } : "skip"
-  );
+  const session = statisticsResource.useSessionDetail(sessionId);
 
   return (
     <ScreenWrapper>
