@@ -1,14 +1,13 @@
-import { useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import { Text } from "react-native";
 
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
-import { api } from "@/convex/_generated/api";
 import { SplitBuilder } from "@/features/splits/components/split-builder";
+import { splitResource } from "@/features/splits/data/split-resource";
 
 export default function TrainingSplitCreate() {
   const router = useRouter();
-  const split = useQuery(api.splits.getMine);
+  const split = splitResource.useMine();
 
   if (split === undefined) {
     return (

@@ -1,19 +1,18 @@
-import { useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { AppHeaderActions } from "@/components/app-header-actions";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
-import { api } from "@/convex/_generated/api";
 import { DayCard } from "@/features/splits/components/day-card";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
+import { splitResource } from "@/features/splits/data/split-resource";
 import { getSetCount, getTotalReps } from "@/features/splits/utils/targets";
 
 export function TrainingSplitScreen() {
   const router = useRouter();
-  const split = useQuery(api.splits.getMine);
-  const exercises = useQuery(api.exercises.list);
-  const muscles = useQuery(api.muscles.list);
+  const split = splitResource.useMine();
+  const exercises = splitResource.useExercises();
+  const muscles = splitResource.useMuscles();
 
   if (split === undefined) {
     return (
