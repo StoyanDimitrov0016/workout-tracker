@@ -23,8 +23,16 @@ function formatDraftNumber(value: number | null) {
 export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps) {
   const router = useRouter();
   const timer = useRestTimer();
-  const { entries, errorMessage, isFinishing, updateSetDraft, addSet, toggleDone, finish } =
-    useActiveWorkoutSession(session);
+  const {
+    canFinish,
+    entries,
+    errorMessage,
+    isFinishing,
+    updateSetDraft,
+    addSet,
+    toggleDone,
+    finish,
+  } = useActiveWorkoutSession(session);
 
   return (
     <View className="gap-6">
@@ -86,6 +94,12 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
         Session progress is now saved automatically while you train.
       </Text>
 
+      {!canFinish ? (
+        <Text className="text-xs text-text-tertiary">
+          Log at least one set or mark an exercise done before finishing this workout.
+        </Text>
+      ) : null}
+
       <Pressable
         onPress={async () => {
           const finishedSessionId = await finish();
@@ -96,8 +110,8 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
             params: { sessionId: finishedSessionId },
           });
         }}
-        disabled={isFinishing}
-        className={`rounded-xl py-3 ${isFinishing ? "bg-primary/60" : "bg-primary"}`}
+        disabled={isFinishing || !canFinish}
+        className={`rounded-xl py-3 ${isFinishing || !canFinish ? "bg-primary/60" : "bg-primary"}`}
       >
         <Text className="text-center font-semibold text-white">
           {isFinishing ? "Finishing..." : "Finish workout"}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Text } from "react-native";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "expo-router";
@@ -8,7 +8,6 @@ import { api } from "@/convex/_generated/api";
 import { ActiveSessionWorkspace } from "@/features/start-session/components/active-session-workspace";
 import { StartSessionEmptyState } from "@/features/start-session/components/start-session-empty-state";
 import { UpcomingSessionPreview } from "@/features/start-session/components/upcoming-session-preview";
-import { getUpcomingTrainingDay } from "@/features/start-session/utils/session";
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -18,16 +17,12 @@ export default function StartSessionTab() {
   const router = useRouter();
   const split = useQuery(api.splits.getMine);
   const activeSession = useQuery(api.workoutSessions.getActive);
+  const upcomingAvailability = useQuery(api.workoutSessions.getUpcomingAvailability);
   const startSession = useMutation(api.workoutSessions.startFromUpcomingDay);
   const [startErrorMessage, setStartErrorMessage] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
 
-  const upcomingDay = useMemo(() => {
-    if (!split) return null;
-    return getUpcomingTrainingDay(split.days);
-  }, [split]);
-
-  if (split === undefined || activeSession === undefined) {
+  if (split === undefined || activeSession === undefined || upcomingAvailability === undefined) {
     return (
       <ScreenWrapper>
         <Text className="text-text-secondary">Loading...</Text>
@@ -47,7 +42,7 @@ export default function StartSessionTab() {
     );
   }
 
-  if (!activeSession && !upcomingDay) {
+  if (!activeSession && upcomingAvailability?.status === "no_training_day") {
     return (
       <ScreenWrapper>
         <StartSessionEmptyState
@@ -64,9 +59,21 @@ export default function StartSessionTab() {
     <ScreenWrapper>
       {activeSession ? (
         <ActiveSessionWorkspace key={activeSession._id} session={activeSession} />
-      ) : upcomingDay ? (
+      ) : upcomingAvailability?.status === "completed_today" ? (
+        <StartSessionEmptyState
+          title="Today's planned workout is already completed"
+          description="Review the summary or come back on your next scheduled training day."
+          actionLabel="View summary"
+          onAction={() =>
+            router.push({
+              pathname: "/start-session/summary/[sessionId]",
+              params: { sessionId: upcomingAvailability.sessionId },
+            })
+          }
+        />
+      ) : upcomingAvailability?.status === "available" ? (
         <UpcomingSessionPreview
-          day={upcomingDay}
+          day={upcomingAvailability.day}
           isStarting={isStarting}
           errorMessage={startErrorMessage}
           onStart={async () => {
