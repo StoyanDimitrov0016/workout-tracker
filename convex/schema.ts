@@ -93,5 +93,6 @@ export default defineSchema({
   })
     .index("by_user", ["userToken"])
     .index("by_user_and_status", ["userToken", "status"])
-    .index("by_user_and_startedAt", ["userToken", "startedAt"]),
+    .index("by_user_and_startedAt", ["userToken", "startedAt"])
+    .index("by_user_status_weekday_startedAt", ["userToken", "status", "weekday", "startedAt"]),
 });

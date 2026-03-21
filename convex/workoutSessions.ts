@@ -17,6 +17,7 @@ import {
   buildReopenedSessionDocument,
   buildSessionExercises,
   findExistingTrainingDaySession,
+  getDateBoundsFromDateKey,
   getCurrentDateKey,
   getSessionTotals,
   getUpcomingTrainingDay,
@@ -60,9 +61,13 @@ async function getExistingTrainingDaySession(
   weekday: number,
   trainingDateKey: string
 ) {
+  const { end, start } = getDateBoundsFromDateKey(trainingDateKey);
   const sessions = await ctx.db
     .query("workoutSessions")
-    .withIndex("by_user", (q) => q.eq("userToken", userToken))
+    .withIndex("by_user_and_startedAt", (q) =>
+      q.eq("userToken", userToken).gte("startedAt", start).lt("startedAt", end)
+    )
+    .order("desc")
     .collect();
 
   return findExistingTrainingDaySession(sessions, weekday, trainingDateKey);
@@ -241,13 +246,14 @@ export const getLatestCompletedForWeekday = query({
   },
   handler: async (ctx, args) => {
     const userToken = await requireAuth(ctx);
-    const sessions = await ctx.db
+    const session = await ctx.db
       .query("workoutSessions")
-      .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
+      .withIndex("by_user_status_weekday_startedAt", (q) =>
+        q.eq("userToken", userToken).eq("status", "completed").eq("weekday", args.weekday)
+      )
       .order("desc")
-      .collect();
+      .first();
 
-    const session = sessions.find((item) => item.weekday === args.weekday);
     if (!session) {
       return null;
     }
@@ -297,16 +303,16 @@ export const startFromUpcomingDay = mutation({
       throw new Error("Create a split before starting a session.");
     }
 
-      const upcomingDay = getUpcomingTrainingDay(split);
-      if (!upcomingDay) {
-        throw new Error("Add exercises to your split before starting a session.");
-      }
-      if (upcomingDay.exercises.length > MAX_SPLIT_EXERCISES_PER_DAY) {
-        throw new Error("This training day has too many exercises to start safely.");
-      }
+    const upcomingDay = getUpcomingTrainingDay(split);
+    if (!upcomingDay) {
+      throw new Error("Add exercises to your split before starting a session.");
+    }
+    if (upcomingDay.exercises.length > MAX_SPLIT_EXERCISES_PER_DAY) {
+      throw new Error("This training day has too many exercises to start safely.");
+    }
 
-      const existingSession = await getExistingTrainingDaySession(
-        ctx,
+    const existingSession = await getExistingTrainingDaySession(
+      ctx,
       userToken,
       upcomingDay.weekday,
       trainingDateKey
@@ -380,17 +386,17 @@ export const addExerciseSet = mutation({
     const userToken = await requireAuth(ctx);
     const session = await getOwnedSession(ctx, args.sessionId, userToken);
 
-      if (session.status !== "active") throw new Error("Completed sessions cannot be edited.");
+    if (session.status !== "active") throw new Error("Completed sessions cannot be edited.");
 
-      const exercise = session.exercises[args.exerciseIndex];
-      if (!exercise) throw new Error("Exercise not found.");
-      if (exercise.performedSets.length >= MAX_SESSION_SETS_PER_EXERCISE) {
-        throw new Error(
-          `Each exercise can have at most ${MAX_SESSION_SETS_PER_EXERCISE} logged sets in one session.`
-        );
-      }
+    const exercise = session.exercises[args.exerciseIndex];
+    if (!exercise) throw new Error("Exercise not found.");
+    if (exercise.performedSets.length >= MAX_SESSION_SETS_PER_EXERCISE) {
+      throw new Error(
+        `Each exercise can have at most ${MAX_SESSION_SETS_PER_EXERCISE} logged sets in one session.`
+      );
+    }
 
-      const nextSet = buildNextPerformedSet(exercise);
+    const nextSet = buildNextPerformedSet(exercise);
 
     const exercises = session.exercises.map((item, exerciseIndex) =>
       exerciseIndex === args.exerciseIndex
