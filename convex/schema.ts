@@ -64,6 +64,7 @@ export default defineSchema({
   workoutSessions: defineTable({
     userToken: v.string(),
     splitId: v.optional(v.id("splits")),
+    trainingDateKey: v.optional(v.string()),
     weekday: v.number(),
     title: v.string(),
     status: v.union(v.literal("active"), v.literal("completed")),
@@ -92,5 +93,6 @@ export default defineSchema({
   })
     .index("by_user", ["userToken"])
     .index("by_user_and_status", ["userToken", "status"])
-    .index("by_user_and_startedAt", ["userToken", "startedAt"]),
+    .index("by_user_and_startedAt", ["userToken", "startedAt"])
+    .index("by_user_status_weekday_startedAt", ["userToken", "status", "weekday", "startedAt"]),
 });

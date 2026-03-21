@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
-import { formatStatNumber, formatVolumeKg } from "@/features/statistics/utils/format-stat";
+import { formatDateTime } from "@/utils/format/date-time";
+import { formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
 
 type ExerciseStatCardProps = {
   exerciseName: string;

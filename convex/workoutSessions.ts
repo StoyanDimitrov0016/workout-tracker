@@ -1,9 +1,29 @@
-import { type Infer, v } from "convex/values";
+import { v } from "convex/values";
 
 import { requireAuth } from "./auth";
 import type { Doc } from "./_generated/dataModel";
-import type { MutationCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
+import {
+  MAX_SESSION_SETS_PER_EXERCISE,
+  MAX_SPLIT_EXERCISES_PER_DAY,
+  MAX_WORKOUT_HISTORY_LIMIT,
+  assertPositiveLimit,
+} from "./usageLimits";
+import {
+  buildCompletedSessionDetail,
+  buildCompletedSessionSummary,
+  buildNextPerformedSet,
+  buildReopenedSessionDocument,
+  buildSessionExercises,
+  findExistingTrainingDaySession,
+  getDateBoundsFromDateKey,
+  getCurrentDateKey,
+  getSessionTotals,
+  getUpcomingTrainingDay,
+  hasMeaningfulSessionProgress,
+  updatePerformedSet,
+} from "./workoutSessionDomain";
 
 const performedSetSchema = v.object({
   reps: v.union(v.number(), v.null()),
@@ -24,50 +44,6 @@ const sessionExerciseSchema = v.object({
   isDone: v.boolean(),
 });
 
-type SessionExercise = Infer<typeof sessionExerciseSchema>;
-type PerformedSet = Infer<typeof performedSetSchema>;
-
-function getUpcomingTrainingDay(split: Doc<"splits">) {
-  const trainingDays = split.days.filter((day) => day.exercises.length > 0);
-  if (trainingDays.length === 0) return null;
-
-  const jsDay = new Date().getDay();
-  const today = jsDay === 0 ? 7 : jsDay + 1;
-  let candidate = trainingDays[0];
-  let bestDelta = 7;
-
-  trainingDays.forEach((day) => {
-    const delta = (day.weekday - today + 7) % 7;
-    if (delta < bestDelta) {
-      candidate = day;
-      bestDelta = delta;
-    }
-  });
-
-  return candidate;
-}
-
-function buildPerformedSets(targetSets: SessionExercise["targetSets"]) {
-  const safeTargetSets = targetSets.length > 0 ? targetSets : [{ reps: 0, restSec: 120 }];
-  return safeTargetSets.map((target) => ({
-    reps: target.reps,
-    weightKg: null,
-    restSec: target.restSec,
-  }));
-}
-
-function buildSessionExercises(
-  exercises: Doc<"splits">["days"][number]["exercises"]
-): SessionExercise[] {
-  return exercises.map((exercise) => ({
-    exerciseId: exercise.exerciseId,
-    exerciseName: exercise.exerciseName,
-    targetSets: exercise.setTargets,
-    performedSets: buildPerformedSets(exercise.setTargets),
-    isDone: false,
-  }));
-}
-
 async function getOwnedSession(
   ctx: MutationCtx,
   sessionId: Doc<"workoutSessions">["_id"],
@@ -79,50 +55,22 @@ async function getOwnedSession(
   return session;
 }
 
-function updatePerformedSet(
-  performedSet: PerformedSet,
-  next: {
-    reps?: number | null;
-    weightKg?: number | null;
-    restSec?: number | null;
-  }
+async function getExistingTrainingDaySession(
+  ctx: MutationCtx | QueryCtx,
+  userToken: string,
+  weekday: number,
+  trainingDateKey: string
 ) {
-  return {
-    reps: next.reps === undefined ? performedSet.reps : next.reps,
-    weightKg: next.weightKg === undefined ? performedSet.weightKg : next.weightKg,
-    restSec: next.restSec === undefined ? performedSet.restSec : next.restSec,
-  };
-}
+  const { end, start } = getDateBoundsFromDateKey(trainingDateKey);
+  const sessions = await ctx.db
+    .query("workoutSessions")
+    .withIndex("by_user_and_startedAt", (q) =>
+      q.eq("userToken", userToken).gte("startedAt", start).lt("startedAt", end)
+    )
+    .order("desc")
+    .collect();
 
-function getSessionTotals(session: Doc<"workoutSessions">) {
-  let totalSets = 0;
-  let totalReps = 0;
-  let totalVolumeKg = 0;
-  let doneExercises = 0;
-
-  session.exercises.forEach((exercise) => {
-    if (exercise.isDone) {
-      doneExercises += 1;
-    }
-
-    totalSets += exercise.performedSets.length;
-
-    exercise.performedSets.forEach((set) => {
-      if (set.reps !== null) {
-        totalReps += set.reps;
-      }
-      if (set.reps !== null && set.weightKg !== null) {
-        totalVolumeKg += set.reps * set.weightKg;
-      }
-    });
-  });
-
-  return {
-    doneExercises,
-    totalSets,
-    totalReps,
-    totalVolumeKg,
-  };
+  return findExistingTrainingDaySession(sessions, weekday, trainingDateKey);
 }
 
 export const getActive = query({
@@ -137,6 +85,47 @@ export const getActive = query({
   },
 });
 
+export const getUpcomingAvailability = query({
+  args: {},
+  handler: async (ctx) => {
+    const userToken = await requireAuth(ctx);
+    const split = await ctx.db
+      .query("splits")
+      .withIndex("by_user", (q) => q.eq("userToken", userToken))
+      .unique();
+
+    if (!split) {
+      return { status: "no_split" as const };
+    }
+
+    const upcomingDay = getUpcomingTrainingDay(split);
+    if (!upcomingDay) {
+      return { status: "no_training_day" as const };
+    }
+
+    const trainingDateKey = getCurrentDateKey();
+    const existingSession = await getExistingTrainingDaySession(
+      ctx,
+      userToken,
+      upcomingDay.weekday,
+      trainingDateKey
+    );
+
+    if (existingSession?.status === "completed") {
+      return {
+        status: "completed_today" as const,
+        sessionId: existingSession._id,
+        day: upcomingDay,
+      };
+    }
+
+    return {
+      status: "available" as const,
+      day: upcomingDay,
+    };
+  },
+});
+
 export const getStatisticsOverview = query({
   args: {},
   handler: async (ctx) => {
@@ -147,25 +136,7 @@ export const getStatisticsOverview = query({
       .order("desc")
       .collect();
 
-    const recentSessions = sessions.slice(0, 6).map((session) => {
-      const totals = getSessionTotals(session);
-      const durationMs =
-        session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
-
-      return {
-        _id: session._id,
-        title: session.title,
-        weekday: session.weekday,
-        startedAt: session.startedAt,
-        completedAt: session.completedAt ?? null,
-        exerciseCount: session.exercises.length,
-        doneExercises: totals.doneExercises,
-        totalSets: totals.totalSets,
-        totalReps: totals.totalReps,
-        totalVolumeKg: totals.totalVolumeKg,
-        durationMs,
-      };
-    });
+    const recentSessions = sessions.slice(0, 6).map(buildCompletedSessionSummary);
 
     const exerciseStatsMap = new Map<
       string,
@@ -256,32 +227,38 @@ export const listCompleted = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const limit = args.limit ?? 20;
+    assertPositiveLimit(limit, MAX_WORKOUT_HISTORY_LIMIT, "Workout history limit");
     const userToken = await requireAuth(ctx);
     const sessions = await ctx.db
       .query("workoutSessions")
       .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
       .order("desc")
-      .take(args.limit ?? 20);
+      .take(limit);
 
-    return sessions.map((session) => {
-      const totals = getSessionTotals(session);
-      const durationMs =
-        session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
+    return sessions.map(buildCompletedSessionSummary);
+  },
+});
 
-      return {
-        _id: session._id,
-        title: session.title,
-        weekday: session.weekday,
-        startedAt: session.startedAt,
-        completedAt: session.completedAt ?? null,
-        exerciseCount: session.exercises.length,
-        doneExercises: totals.doneExercises,
-        totalSets: totals.totalSets,
-        totalReps: totals.totalReps,
-        totalVolumeKg: totals.totalVolumeKg,
-        durationMs,
-      };
-    });
+export const getLatestCompletedForWeekday = query({
+  args: {
+    weekday: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userToken = await requireAuth(ctx);
+    const session = await ctx.db
+      .query("workoutSessions")
+      .withIndex("by_user_status_weekday_startedAt", (q) =>
+        q.eq("userToken", userToken).eq("status", "completed").eq("weekday", args.weekday)
+      )
+      .order("desc")
+      .first();
+
+    if (!session) {
+      return null;
+    }
+
+    return buildCompletedSessionSummary(session);
   },
 });
 
@@ -297,49 +274,7 @@ export const getCompletedById = query({
     if (session.userToken !== userToken) throw new Error("Forbidden");
     if (session.status !== "completed") return null;
 
-    const totals = getSessionTotals(session);
-    const durationMs =
-      session.completedAt !== undefined ? Math.max(session.completedAt - session.startedAt, 0) : null;
-
-    return {
-      _id: session._id,
-      title: session.title,
-      weekday: session.weekday,
-      startedAt: session.startedAt,
-      completedAt: session.completedAt ?? null,
-      durationMs,
-      totalSets: totals.totalSets,
-      totalReps: totals.totalReps,
-      totalVolumeKg: totals.totalVolumeKg,
-      doneExercises: totals.doneExercises,
-      exerciseCount: session.exercises.length,
-      exercises: session.exercises.map((exercise) => {
-        const exerciseTotals = exercise.performedSets.reduce(
-          (acc, set) => {
-            acc.totalSets += 1;
-            if (set.reps !== null) {
-              acc.totalReps += set.reps;
-            }
-            if (set.reps !== null && set.weightKg !== null) {
-              acc.totalVolumeKg += set.reps * set.weightKg;
-            }
-            return acc;
-          },
-          { totalSets: 0, totalReps: 0, totalVolumeKg: 0 }
-        );
-
-        return {
-          exerciseId: exercise.exerciseId,
-          exerciseName: exercise.exerciseName,
-          isDone: exercise.isDone,
-          targetSets: exercise.targetSets,
-          performedSets: exercise.performedSets,
-          totalSets: exerciseTotals.totalSets,
-          totalReps: exerciseTotals.totalReps,
-          totalVolumeKg: exerciseTotals.totalVolumeKg,
-        };
-      }),
-    };
+    return buildCompletedSessionDetail(session);
   },
 });
 
@@ -347,6 +282,7 @@ export const startFromUpcomingDay = mutation({
   args: {},
   handler: async (ctx) => {
     const userToken = await requireAuth(ctx);
+    const trainingDateKey = getCurrentDateKey();
 
     const activeSession = await ctx.db
       .query("workoutSessions")
@@ -371,10 +307,25 @@ export const startFromUpcomingDay = mutation({
     if (!upcomingDay) {
       throw new Error("Add exercises to your split before starting a session.");
     }
+    if (upcomingDay.exercises.length > MAX_SPLIT_EXERCISES_PER_DAY) {
+      throw new Error("This training day has too many exercises to start safely.");
+    }
+
+    const existingSession = await getExistingTrainingDaySession(
+      ctx,
+      userToken,
+      upcomingDay.weekday,
+      trainingDateKey
+    );
+
+    if (existingSession?.status === "completed") {
+      throw new Error("You already completed this planned workout today.");
+    }
 
     return await ctx.db.insert("workoutSessions", {
       userToken,
       splitId: split._id,
+      trainingDateKey,
       weekday: upcomingDay.weekday,
       title: upcomingDay.title.trim() || "Training",
       status: "active",
@@ -439,19 +390,13 @@ export const addExerciseSet = mutation({
 
     const exercise = session.exercises[args.exerciseIndex];
     if (!exercise) throw new Error("Exercise not found.");
+    if (exercise.performedSets.length >= MAX_SESSION_SETS_PER_EXERCISE) {
+      throw new Error(
+        `Each exercise can have at most ${MAX_SESSION_SETS_PER_EXERCISE} logged sets in one session.`
+      );
+    }
 
-    const nextTarget = exercise.targetSets[exercise.performedSets.length];
-    const nextSet = nextTarget
-      ? {
-          reps: nextTarget.reps,
-          weightKg: null,
-          restSec: nextTarget.restSec,
-        }
-      : {
-          reps: null,
-          weightKg: null,
-          restSec: null,
-        };
+    const nextSet = buildNextPerformedSet(exercise);
 
     const exercises = session.exercises.map((item, exerciseIndex) =>
       exerciseIndex === args.exerciseIndex
@@ -495,12 +440,42 @@ export const finish = mutation({
     const session = await getOwnedSession(ctx, args.sessionId, userToken);
 
     if (session.status !== "active") return args.sessionId;
+    if (!hasMeaningfulSessionProgress(session)) {
+      throw new Error("Log at least one set or mark an exercise done before finishing.");
+    }
 
     await ctx.db.patch(args.sessionId, {
       status: "completed",
       completedAt: Date.now(),
     });
 
+    return args.sessionId;
+  },
+});
+
+export const reopen = mutation({
+  args: {
+    sessionId: v.id("workoutSessions"),
+  },
+  handler: async (ctx, args) => {
+    const userToken = await requireAuth(ctx);
+    const session = await getOwnedSession(ctx, args.sessionId, userToken);
+
+    const activeSession = await ctx.db
+      .query("workoutSessions")
+      .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "active"))
+      .order("desc")
+      .first();
+
+    if (activeSession && activeSession._id !== session._id) {
+      throw new Error("Finish or discard the active session before reopening another one.");
+    }
+
+    if (session.status === "active") {
+      return session._id;
+    }
+
+    await ctx.db.replace(args.sessionId, buildReopenedSessionDocument(session));
     return args.sessionId;
   },
 });

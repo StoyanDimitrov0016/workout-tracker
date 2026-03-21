@@ -14,7 +14,9 @@ import type * as exercises from "../exercises.js";
 import type * as muscles from "../muscles.js";
 import type * as seed from "../seed.js";
 import type * as splits from "../splits.js";
+import type * as usageLimits from "../usageLimits.js";
 import type * as weights from "../weights.js";
+import type * as workoutSessionDomain from "../workoutSessionDomain.js";
 import type * as workoutSessions from "../workoutSessions.js";
 
 import type {
@@ -30,7 +32,9 @@ declare const fullApi: ApiFromModules<{
   muscles: typeof muscles;
   seed: typeof seed;
   splits: typeof splits;
+  usageLimits: typeof usageLimits;
   weights: typeof weights;
+  workoutSessionDomain: typeof workoutSessionDomain;
   workoutSessions: typeof workoutSessions;
 }>;
 

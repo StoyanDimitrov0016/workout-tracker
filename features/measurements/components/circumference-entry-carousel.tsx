@@ -1,11 +1,10 @@
-﻿import { useQuery } from "convex/react";
 import { useMemo } from "react";
 import { ScrollView, Text, View, useWindowDimensions } from "react-native";
 
-import { api } from "@/convex/_generated/api";
 import { CIRCUMFERENCE_PREVIEW_LIMIT } from "@/features/measurements/constants/circumference";
-import { formatMeasurementValue } from "@/features/measurements/utils/format-measurement";
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
+import { measurementsResource } from "@/features/measurements/data/measurements-resource";
+import { formatDateTime } from "@/utils/format/date-time";
+import { formatMeasurementValue } from "@/utils/format/measurement";
 
 function formatSingle(value: number) {
   return `${formatMeasurementValue(value)} cm`;
@@ -16,9 +15,7 @@ function formatPair(left: number, right: number) {
 }
 
 export function CircumferenceEntryCarousel() {
-  const entries = useQuery(api.circumferences.listRecent, {
-    limit: CIRCUMFERENCE_PREVIEW_LIMIT,
-  });
+  const entries = measurementsResource.circumferences.useRecent(CIRCUMFERENCE_PREVIEW_LIMIT);
   const { width } = useWindowDimensions();
 
   const cardWidth = useMemo(() => Math.min(width - 48, 360), [width]);

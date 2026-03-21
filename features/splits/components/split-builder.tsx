@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
-import { useMutation, useQuery } from "convex/react";
 
-import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
   type BuilderDay,
@@ -14,6 +12,7 @@ import {
 import { SplitBuilderStepOne } from "@/features/splits/components/split-builder-step-one";
 import { SplitBuilderStepTwo } from "@/features/splits/components/split-builder-step-two";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
+import { splitResource } from "@/features/splits/data/split-resource";
 import {
   parseValidatedPositiveInteger,
   validateTrainingDays,
@@ -79,8 +78,8 @@ function buildInitialDays(split: SplitInput | null): BuilderDay[] {
 }
 
 export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilderProps) {
-  const saveSplit = useMutation(api.splits.saveMine);
-  const exercises = useQuery(api.exercises.list);
+  const saveSplit = splitResource.useSave();
+  const exercises = splitResource.useExercises();
   const [name, setName] = useState(initialSplit?.name ?? "");
   const [days, setDays] = useState<BuilderDay[]>(() => buildInitialDays(initialSplit));
   const [step, setStep] = useState<1 | 2>(1);
@@ -93,10 +92,7 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
   const [isSaving, setIsSaving] = useState(false);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
-  const searchResults = useQuery(api.exercises.searchByName, {
-    text: debouncedText,
-    limit: 20,
-  });
+  const searchResults = splitResource.useExerciseSearch(debouncedText, 20);
 
   const trainingDays = useMemo(() => days.filter((day) => day.isTraining), [days]);
   const placeholderByWeekday = useMemo(

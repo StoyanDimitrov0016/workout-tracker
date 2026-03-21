@@ -1,28 +1,34 @@
+import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import type { Doc } from "@/convex/_generated/dataModel";
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
-import { formatWeightKg } from "@/features/measurements/utils/weight";
 import { RestTimer } from "@/features/start-session/components/rest-timer";
 import { SessionExerciseCard } from "@/features/start-session/components/session-exercise-card";
 import { TIMER_PRESETS } from "@/features/start-session/constants/timer";
 import { useActiveWorkoutSession } from "@/features/start-session/hooks/use-active-workout-session";
+import { buildSessionEntryDrafts } from "@/features/start-session/utils/session-draft";
 import { useRestTimer } from "@/features/start-session/hooks/use-rest-timer";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
+import { formatDateTime } from "@/utils/format/date-time";
 
 type ActiveSessionWorkspaceProps = {
   session: Doc<"workoutSessions">;
 };
 
-function formatDraftNumber(value: number | null) {
-  if (value === null) return "";
-  return String(value);
-}
-
 export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps) {
+  const router = useRouter();
   const timer = useRestTimer();
-  const { entries, errorMessage, isFinishing, updateSetDraft, addSet, toggleDone, finish } =
-    useActiveWorkoutSession(session);
+  const {
+    canFinish,
+    entries,
+    errorMessage,
+    isFinishing,
+    updateSetDraft,
+    addSet,
+    toggleDone,
+    finish,
+  } = useActiveWorkoutSession(session);
+  const fallbackEntries = buildSessionEntryDrafts(session);
 
   return (
     <View className="gap-6">
@@ -56,14 +62,7 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
 
       <View className="gap-3">
         {session.exercises.map((exercise, exerciseIndex) => {
-          const entry = entries[String(exerciseIndex)] ?? {
-            isDone: exercise.isDone,
-            sets: exercise.performedSets.map((set) => ({
-              reps: formatDraftNumber(set.reps),
-              weightKg: set.weightKg === null ? "" : formatWeightKg(set.weightKg),
-              restSec: formatDraftNumber(set.restSec),
-            })),
-          };
+          const entry = entries[String(exerciseIndex)] ?? fallbackEntries[String(exerciseIndex)];
 
           return (
             <SessionExerciseCard
@@ -84,10 +83,24 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
         Session progress is now saved automatically while you train.
       </Text>
 
+      {!canFinish ? (
+        <Text className="text-xs text-text-tertiary">
+          Log at least one set or mark an exercise done before finishing this workout.
+        </Text>
+      ) : null}
+
       <Pressable
-        onPress={finish}
-        disabled={isFinishing}
-        className={`rounded-xl py-3 ${isFinishing ? "bg-primary/60" : "bg-primary"}`}
+        onPress={async () => {
+          const finishedSessionId = await finish();
+          if (!finishedSessionId) return;
+
+          router.replace({
+            pathname: "/start-session/summary/[sessionId]",
+            params: { sessionId: finishedSessionId },
+          });
+        }}
+        disabled={isFinishing || !canFinish}
+        className={`rounded-xl py-3 ${isFinishing || !canFinish ? "bg-primary/60" : "bg-primary"}`}
       >
         <Text className="text-center font-semibold text-white">
           {isFinishing ? "Finishing..." : "Finish workout"}

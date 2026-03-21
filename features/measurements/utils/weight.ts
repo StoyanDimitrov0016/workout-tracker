@@ -1,17 +1,15 @@
-﻿import {
+import {
   MAX_WEIGHT_KG,
   MIN_WEIGHT_KG,
   WEIGHT_STEP_KG,
 } from "@/features/measurements/constants/weight";
+import { formatWeightKg } from "@/utils/format/weight";
 
 export function clampWeight(value: number) {
   return Math.min(Math.max(value, MIN_WEIGHT_KG), MAX_WEIGHT_KG);
 }
 
-export function formatWeightKg(value: number) {
-  const rounded = Math.round(value * 10) / 10;
-  return rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
-}
+export { formatWeightKg };
 
 export function parseWeightKg(value: string) {
   const normalized = value.replace(",", ".").trim();
