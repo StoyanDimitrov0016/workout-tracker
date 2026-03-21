@@ -1,12 +1,8 @@
 import { Pressable, Text, View } from "react-native";
 
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
-import {
-  formatDurationMs,
-  formatStatNumber,
-  formatVolumeKg,
-} from "@/features/statistics/utils/format-stat";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
+import { formatDateTime } from "@/utils/format/date-time";
+import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
 
 type HistorySessionCardProps = {
   title: string;

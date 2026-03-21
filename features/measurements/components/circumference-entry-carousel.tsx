@@ -4,8 +4,8 @@ import { ScrollView, Text, View, useWindowDimensions } from "react-native";
 
 import { api } from "@/convex/_generated/api";
 import { CIRCUMFERENCE_PREVIEW_LIMIT } from "@/features/measurements/constants/circumference";
-import { formatMeasurementValue } from "@/features/measurements/utils/format-measurement";
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
+import { formatDateTime } from "@/utils/format/date-time";
+import { formatMeasurementValue } from "@/utils/format/measurement";
 
 function formatSingle(value: number) {
   return `${formatMeasurementValue(value)} cm`;

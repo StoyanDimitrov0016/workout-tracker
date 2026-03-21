@@ -5,14 +5,10 @@ import { Text, View } from "react-native";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { formatDateTime } from "@/features/measurements/utils/format-date-time";
-import {
-  formatDurationMs,
-  formatStatNumber,
-  formatVolumeKg,
-} from "@/features/statistics/utils/format-stat";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import { formatSetTargetsSummary } from "@/features/splits/utils/targets";
+import { formatDateTime } from "@/utils/format/date-time";
+import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
 
 function formatPerformedValue(value: number | null, suffix = "") {
   if (value === null) return "Not logged";
