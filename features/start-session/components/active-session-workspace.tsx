@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -20,6 +21,7 @@ function formatDraftNumber(value: number | null) {
 }
 
 export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps) {
+  const router = useRouter();
   const timer = useRestTimer();
   const { entries, errorMessage, isFinishing, updateSetDraft, addSet, toggleDone, finish } =
     useActiveWorkoutSession(session);
@@ -85,7 +87,15 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
       </Text>
 
       <Pressable
-        onPress={finish}
+        onPress={async () => {
+          const finishedSessionId = await finish();
+          if (!finishedSessionId) return;
+
+          router.replace({
+            pathname: "/start-session/summary/[sessionId]",
+            params: { sessionId: finishedSessionId },
+          });
+        }}
         disabled={isFinishing}
         className={`rounded-xl py-3 ${isFinishing ? "bg-primary/60" : "bg-primary"}`}
       >
