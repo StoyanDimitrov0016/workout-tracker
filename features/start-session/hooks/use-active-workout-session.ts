@@ -4,61 +4,19 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { canFinishSession } from "@/features/start-session/utils/session-progress";
-import { formatWeightKg } from "@/utils/format/weight";
-
-type SessionSetDraft = {
-  reps: string;
-  weightKg: string;
-  restSec: string;
-};
-
-type SessionEntryDraft = {
-  isDone: boolean;
-  sets: SessionSetDraft[];
-};
+import {
+  buildSessionEntryDrafts,
+  getSessionExerciseKey,
+  parseSessionDraftNumber,
+  type SessionEntryDraft,
+  type SessionSetDraft,
+} from "@/features/start-session/utils/session-draft";
 
 type PendingSetSave = {
   exerciseIndex: number;
   setIndex: number;
   set: SessionSetDraft;
 };
-
-function formatDraftNumber(value: number | null) {
-  if (value === null) return "";
-  return String(value);
-}
-
-function buildEntries(session: Doc<"workoutSessions">) {
-  return session.exercises.reduce<Record<string, SessionEntryDraft>>(
-    (acc, exercise, exerciseIndex) => {
-      acc[String(exerciseIndex)] = {
-        isDone: exercise.isDone,
-        sets: exercise.performedSets.map((set) => ({
-          reps: formatDraftNumber(set.reps),
-          weightKg: set.weightKg === null ? "" : formatWeightKg(set.weightKg),
-          restSec: formatDraftNumber(set.restSec),
-        })),
-      };
-
-      return acc;
-    },
-    {}
-  );
-}
-
-function parseOptionalNumber(value: string) {
-  const normalized = value.replace(",", ".").trim();
-  if (!normalized) return null;
-
-  const parsed = Number(normalized);
-  if (Number.isNaN(parsed) || parsed < 0) return null;
-
-  return parsed;
-}
-
-function getExerciseKey(exerciseIndex: number) {
-  return String(exerciseIndex);
-}
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -71,7 +29,7 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
   const finishSession = useMutation(api.workoutSessions.finish);
 
   const [entries, setEntries] = useState<Record<string, SessionEntryDraft>>(() =>
-    buildEntries(session)
+    buildSessionEntryDrafts(session)
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFinishing, setIsFinishing] = useState(false);
@@ -99,9 +57,9 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
       sessionId,
       exerciseIndex,
       setIndex,
-      reps: parseOptionalNumber(set.reps),
-      weightKg: parseOptionalNumber(set.weightKg),
-      restSec: parseOptionalNumber(set.restSec),
+      reps: parseSessionDraftNumber(set.reps),
+      weightKg: parseSessionDraftNumber(set.weightKg),
+      restSec: parseSessionDraftNumber(set.restSec),
     });
   };
 
@@ -169,7 +127,7 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
   const updateSetDraft = (exerciseIndex: number, setIndex: number, next: SessionSetDraft) => {
     setErrorMessage(null);
     setEntries((previous) => {
-      const key = getExerciseKey(exerciseIndex);
+      const key = getSessionExerciseKey(exerciseIndex);
       const currentEntry = previous[key];
       if (!currentEntry) return previous;
 
@@ -189,7 +147,7 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
     setErrorMessage(null);
 
     const exercise = session.exercises[exerciseIndex];
-    const currentEntry = entries[getExerciseKey(exerciseIndex)];
+    const currentEntry = entries[getSessionExerciseKey(exerciseIndex)];
     if (!exercise || !currentEntry) return;
 
     const nextTarget = exercise.targetSets[currentEntry.sets.length];
@@ -203,7 +161,7 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
 
     setEntries((previous) => ({
       ...previous,
-      [getExerciseKey(exerciseIndex)]: {
+      [getSessionExerciseKey(exerciseIndex)]: {
         ...currentEntry,
         sets: [...currentEntry.sets, nextSet],
       },
@@ -217,7 +175,7 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
     } catch (error) {
       setEntries((previous) => ({
         ...previous,
-        [getExerciseKey(exerciseIndex)]: currentEntry,
+        [getSessionExerciseKey(exerciseIndex)]: currentEntry,
       }));
       setErrorMessage(getErrorMessage(error, "Could not add a new set."));
     }
@@ -226,7 +184,7 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
   const toggleDone = async (exerciseIndex: number) => {
     setErrorMessage(null);
 
-    const key = getExerciseKey(exerciseIndex);
+    const key = getSessionExerciseKey(exerciseIndex);
     const currentEntry = entries[key];
     if (!currentEntry) return;
 
