@@ -49,6 +49,7 @@ npm run format:check
 - App routes live in `app/` and domain features live in `features/`.
 - Convex backend code lives in `convex/`.
 - Current planning and follow-up work is tracked in `docs/roadmap.md`.
+- Temporary dependency workarounds are tracked in `CLEANUP.md`.
 - Local secrets should stay in `.env.local`.
 
 More complete setup documentation can be added in a dedicated `docs/project-setup` pass.
