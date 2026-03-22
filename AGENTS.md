@@ -16,7 +16,6 @@
 - `npm run android` / `npm run ios` / `npm run web`: run the app on a specific platform.
 - `npm run lint`: run ESLint with the Expo config.
 - `npm run format` / `npm run format:check`: format or validate formatting with Prettier.
-- `npm run reset-project`: reset the starter scaffold (see `scripts/reset-project.js`).
 
 ## Coding Style & Naming Conventions
 
