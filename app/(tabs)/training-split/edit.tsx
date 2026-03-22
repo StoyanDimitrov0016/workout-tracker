@@ -35,7 +35,7 @@ export default function TrainingSplitEdit() {
   }
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper scroll={false}>
       <Stack.Screen options={{ title: "Edit plan" }} />
       <SplitBuilder
         initialSplit={split}

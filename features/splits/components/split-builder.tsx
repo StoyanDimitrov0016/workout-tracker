@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import type { Id } from "@/convex/_generated/dataModel";
 import {
@@ -274,67 +274,111 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
 
   if (step === 1) {
     return (
-      <SplitBuilderStepOne
-        name={name}
-        days={days}
-        placeholderByWeekday={placeholderByWeekday}
-        expandedWeekday={expandedWeekday}
-        searchText={searchText}
-        debouncedText={debouncedText}
-        showAllExercises={showAllExercises}
-        exercises={exercises}
-        searchResults={searchResults}
-        canContinue={canContinue}
-        hasTrainingDays={hasTrainingDays}
-        hasExercises={hasExercises}
-        onNameChange={(value) => {
-          setSaveErrorMessage(null);
-          setName(value);
-        }}
-        onToggleTraining={toggleTraining}
-        onUpdateTitle={updateTitle}
-        onRemoveExercise={removeExercise}
-        onToggleExercises={(weekday) =>
-          setExpandedWeekday((prev) => {
-            const next = prev === weekday ? null : weekday;
-            if (next === null) {
-              setSearchText("");
-              setShowAllExercises(false);
+      <View className="flex-1">
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <SplitBuilderStepOne
+            name={name}
+            days={days}
+            placeholderByWeekday={placeholderByWeekday}
+            expandedWeekday={expandedWeekday}
+            searchText={searchText}
+            debouncedText={debouncedText}
+            showAllExercises={showAllExercises}
+            exercises={exercises}
+            searchResults={searchResults}
+            onNameChange={(value) => {
+              setSaveErrorMessage(null);
+              setName(value);
+            }}
+            onToggleTraining={toggleTraining}
+            onUpdateTitle={updateTitle}
+            onRemoveExercise={removeExercise}
+            onToggleExercises={(weekday) =>
+              setExpandedWeekday((prev) => {
+                const next = prev === weekday ? null : weekday;
+                if (next === null) {
+                  setSearchText("");
+                  setShowAllExercises(false);
+                }
+                return next;
+              })
             }
-            return next;
-          })
-        }
-        onSearchChange={handleSearchChange}
-        onShowAllExercises={toggleShowAll}
-        onAddExercise={addExercise}
-        onContinue={() => setStepAndReset(2)}
-      />
+            onSearchChange={handleSearchChange}
+            onShowAllExercises={toggleShowAll}
+            onAddExercise={addExercise}
+          />
+        </ScrollView>
+
+        <View className="gap-3 border-t border-border bg-background pt-4">
+          <Pressable
+            onPress={() => setStepAndReset(2)}
+            disabled={!canContinue}
+            className={`rounded-xl py-3 ${canContinue ? "bg-primary" : "bg-primary/40"}`}
+          >
+            <Text className="text-center font-semibold text-white">Continue to details</Text>
+          </Pressable>
+          {!hasTrainingDays ? (
+            <Text className="text-center text-xs text-text-tertiary">
+              Select at least one training day to continue.
+            </Text>
+          ) : !hasExercises ? (
+            <Text className="text-center text-xs text-text-tertiary">
+              Add at least one exercise to continue.
+            </Text>
+          ) : null}
+        </View>
+      </View>
     );
   }
 
   return (
-    <SplitBuilderStepTwo
-      trainingDays={trainingDays}
-      placeholderByWeekday={placeholderByWeekday}
-      expandedExerciseKey={expandedExerciseKey}
-      copyMenuWeekday={copyMenuWeekday}
-      submitLabel={submitLabel}
-      isSaving={isSaving}
-      saveErrorMessage={saveErrorMessage}
-      validationErrorsByExerciseKey={validationSummary.errorsByExerciseKey}
-      totalInvalidFields={validationSummary.totalInvalidFields}
-      onToggleExpandedExercise={(exerciseKey) =>
-        setExpandedExerciseKey((prev) => (prev === exerciseKey ? null : exerciseKey))
-      }
-      onUpdateExercise={updateExercise}
-      onRemoveExercise={removeExercise}
-      onToggleCopyMenu={(weekday) =>
-        setCopyMenuWeekday((prev) => (prev === weekday ? null : weekday))
-      }
-      onCopyExercisesToDay={copyExercisesToDay}
-      onCopyExercisesToAll={copyExercisesToAll}
-      onBack={() => setStepAndReset(1)}
-      onSave={handleSave}
-    />
+    <View className="flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 24 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <SplitBuilderStepTwo
+          trainingDays={trainingDays}
+          placeholderByWeekday={placeholderByWeekday}
+          expandedExerciseKey={expandedExerciseKey}
+          copyMenuWeekday={copyMenuWeekday}
+          saveErrorMessage={saveErrorMessage}
+          validationErrorsByExerciseKey={validationSummary.errorsByExerciseKey}
+          totalInvalidFields={validationSummary.totalInvalidFields}
+          onToggleExpandedExercise={(exerciseKey) =>
+            setExpandedExerciseKey((prev) => (prev === exerciseKey ? null : exerciseKey))
+          }
+          onUpdateExercise={updateExercise}
+          onRemoveExercise={removeExercise}
+          onToggleCopyMenu={(weekday) =>
+            setCopyMenuWeekday((prev) => (prev === weekday ? null : weekday))
+          }
+          onCopyExercisesToDay={copyExercisesToDay}
+          onCopyExercisesToAll={copyExercisesToAll}
+        />
+      </ScrollView>
+
+      <View className="flex-row gap-2 border-t border-border bg-background pt-4">
+        <Pressable onPress={() => setStepAndReset(1)} className="flex-1 rounded-xl border border-border px-3 py-3">
+          <Text className="text-center font-semibold text-text-primary">Back</Text>
+        </Pressable>
+        <Pressable
+          onPress={handleSave}
+          disabled={isSaving || validationSummary.totalInvalidFields > 0}
+          className={`flex-1 rounded-xl py-3 ${
+            isSaving || validationSummary.totalInvalidFields > 0 ? "bg-primary/60" : "bg-primary"
+          }`}
+        >
+          <Text className="text-center font-semibold text-white">
+            {isSaving ? "Saving..." : submitLabel}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }

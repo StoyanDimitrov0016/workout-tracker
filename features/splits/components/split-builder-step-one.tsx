@@ -19,9 +19,6 @@ type SplitBuilderStepOneProps = {
   showAllExercises: boolean;
   exercises: ExerciseOption[] | undefined;
   searchResults: ExerciseOption[] | undefined;
-  canContinue: boolean;
-  hasTrainingDays: boolean;
-  hasExercises: boolean;
   onNameChange: (value: string) => void;
   onToggleTraining: (weekday: number) => void;
   onUpdateTitle: (weekday: number, title: string) => void;
@@ -30,7 +27,6 @@ type SplitBuilderStepOneProps = {
   onSearchChange: (value: string) => void;
   onShowAllExercises: () => void;
   onAddExercise: (weekday: number, exercise: ExerciseOption) => void;
-  onContinue: () => void;
 };
 
 export function SplitBuilderStepOne({
@@ -43,9 +39,6 @@ export function SplitBuilderStepOne({
   showAllExercises,
   exercises,
   searchResults,
-  canContinue,
-  hasTrainingDays,
-  hasExercises,
   onNameChange,
   onToggleTraining,
   onUpdateTitle,
@@ -54,7 +47,6 @@ export function SplitBuilderStepOne({
   onSearchChange,
   onShowAllExercises,
   onAddExercise,
-  onContinue,
 }: SplitBuilderStepOneProps) {
   return (
     <View className="gap-6">
@@ -208,23 +200,6 @@ export function SplitBuilderStepOne({
           </View>
         ))}
       </View>
-
-      <Pressable
-        onPress={onContinue}
-        disabled={!canContinue}
-        className={`rounded-xl py-3 ${canContinue ? "bg-primary" : "bg-primary/40"}`}
-      >
-        <Text className="text-center font-semibold text-white">Continue to details</Text>
-      </Pressable>
-      {!hasTrainingDays ? (
-        <Text className="text-center text-xs text-text-tertiary">
-          Select at least one training day to continue.
-        </Text>
-      ) : !hasExercises ? (
-        <Text className="text-center text-xs text-text-tertiary">
-          Add at least one exercise to continue.
-        </Text>
-      ) : null}
     </View>
   );
 }

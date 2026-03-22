@@ -10,8 +10,6 @@ type SplitBuilderStepTwoProps = {
   placeholderByWeekday: Map<number, string>;
   expandedExerciseKey: string | null;
   copyMenuWeekday: number | null;
-  submitLabel: string;
-  isSaving: boolean;
   saveErrorMessage: string | null;
   validationErrorsByExerciseKey: Map<string, ExerciseValidationResult>;
   totalInvalidFields: number;
@@ -21,8 +19,6 @@ type SplitBuilderStepTwoProps = {
   onToggleCopyMenu: (weekday: number) => void;
   onCopyExercisesToDay: (sourceWeekday: number, targetWeekday: number) => void;
   onCopyExercisesToAll: (sourceWeekday: number) => void;
-  onBack: () => void;
-  onSave: () => void;
 };
 
 export function SplitBuilderStepTwo({
@@ -30,8 +26,6 @@ export function SplitBuilderStepTwo({
   placeholderByWeekday,
   expandedExerciseKey,
   copyMenuWeekday,
-  submitLabel,
-  isSaving,
   saveErrorMessage,
   validationErrorsByExerciseKey,
   totalInvalidFields,
@@ -41,8 +35,6 @@ export function SplitBuilderStepTwo({
   onToggleCopyMenu,
   onCopyExercisesToDay,
   onCopyExercisesToAll,
-  onBack,
-  onSave,
 }: SplitBuilderStepTwoProps) {
   return (
     <View className="gap-6">
@@ -70,9 +62,6 @@ export function SplitBuilderStepTwo({
           <Text className="text-sm text-text-secondary">
             Go back and select at least one training day.
           </Text>
-          <Pressable onPress={onBack} className="rounded-xl border border-border px-3 py-2">
-            <Text className="text-center text-sm font-semibold text-text-primary">Back</Text>
-          </Pressable>
         </View>
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-4">
@@ -170,23 +159,6 @@ export function SplitBuilderStepTwo({
           </View>
         </ScrollView>
       )}
-
-      <View className="flex-row gap-2">
-        <Pressable onPress={onBack} className="flex-1 rounded-xl border border-border px-3 py-3">
-          <Text className="text-center font-semibold text-text-primary">Back</Text>
-        </Pressable>
-        <Pressable
-          onPress={onSave}
-          disabled={isSaving || totalInvalidFields > 0}
-          className={`flex-1 rounded-xl py-3 ${
-            isSaving || totalInvalidFields > 0 ? "bg-primary/60" : "bg-primary"
-          }`}
-        >
-          <Text className="text-center font-semibold text-white">
-            {isSaving ? "Saving..." : submitLabel}
-          </Text>
-        </Pressable>
-      </View>
     </View>
   );
 }

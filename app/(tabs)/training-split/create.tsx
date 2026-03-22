@@ -18,7 +18,7 @@ export default function TrainingSplitCreate() {
   }
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper scroll={false}>
       <Stack.Screen options={{ title: "Create plan" }} />
       <SplitBuilder
         initialSplit={split}
