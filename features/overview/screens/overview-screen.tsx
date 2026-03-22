@@ -50,6 +50,9 @@ export function OverviewScreen() {
   }
 
   const loadedStatistics = statistics!;
+  const sessionCountLabel = loadedStatistics.meta.isTruncated
+    ? "Recent sessions"
+    : "Completed sessions";
 
   return (
     <ScreenWrapper>
@@ -197,7 +200,7 @@ export function OverviewScreen() {
             <Text className="text-sm text-text-tertiary">Training momentum</Text>
             <View className="flex-row flex-wrap gap-3">
               <OverviewMetricCard
-                label="Completed sessions"
+                label={sessionCountLabel}
                 value={formatStatNumber(loadedStatistics.summary.totalSessions)}
               />
               <OverviewMetricCard
@@ -209,6 +212,12 @@ export function OverviewScreen() {
                 value={formatDurationMs(loadedStatistics.summary.averageSessionDurationMs)}
               />
             </View>
+            {loadedStatistics.meta.isTruncated ? (
+              <Text className="text-xs text-text-tertiary">
+                Based on your most recent{" "}
+                {formatStatNumber(loadedStatistics.meta.analyzedSessionCount)} completed workouts.
+              </Text>
+            ) : null}
             <Pressable onPress={() => router.push("/statistics/history")} className="self-start">
               <Text className="text-sm font-semibold text-primary">Open workout history</Text>
             </Pressable>

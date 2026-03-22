@@ -1,3 +1,4 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 
 import { requireAuth } from "./auth";
@@ -7,8 +8,7 @@ import { mutation, query } from "./_generated/server";
 import {
   MAX_SESSION_SETS_PER_EXERCISE,
   MAX_SPLIT_EXERCISES_PER_DAY,
-  MAX_WORKOUT_HISTORY_LIMIT,
-  assertPositiveLimit,
+  MAX_STATISTICS_OVERVIEW_SESSIONS,
 } from "./usageLimits";
 import {
   buildCompletedSessionDetail,
@@ -180,11 +180,14 @@ export const getStatisticsOverview = query({
   args: {},
   handler: async (ctx) => {
     const userToken = await requireAuth(ctx);
-    const sessions = await ctx.db
+    const rawSessions = await ctx.db
       .query("workoutSessions")
       .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
       .order("desc")
-      .collect();
+      .take(MAX_STATISTICS_OVERVIEW_SESSIONS + 1);
+
+    const hasMoreSessions = rawSessions.length > MAX_STATISTICS_OVERVIEW_SESSIONS;
+    const sessions = rawSessions.slice(0, MAX_STATISTICS_OVERVIEW_SESSIONS);
 
     const recentSessions = sessions.slice(0, 6).map(buildCompletedSessionSummary);
 
@@ -259,6 +262,10 @@ export const getStatisticsOverview = query({
       .slice(0, 8);
 
     return {
+      meta: {
+        analyzedSessionCount: sessions.length,
+        isTruncated: hasMoreSessions,
+      },
       summary: {
         totalSessions: sessions.length,
         totalSets,
@@ -272,21 +279,22 @@ export const getStatisticsOverview = query({
   },
 });
 
-export const listCompleted = query({
+export const listCompletedPaginated = query({
   args: {
-    limit: v.optional(v.number()),
+    paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 20;
-    assertPositiveLimit(limit, MAX_WORKOUT_HISTORY_LIMIT, "Workout history limit");
     const userToken = await requireAuth(ctx);
-    const sessions = await ctx.db
+    const result = await ctx.db
       .query("workoutSessions")
       .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
       .order("desc")
-      .take(limit);
+      .paginate(args.paginationOpts);
 
-    return sessions.map(buildCompletedSessionSummary);
+    return {
+      ...result,
+      page: result.page.map(buildCompletedSessionSummary),
+    };
   },
 });
 

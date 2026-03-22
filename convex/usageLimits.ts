@@ -9,6 +9,7 @@ export const MAX_WEIGHT_QUERY_LIMIT = 30;
 export const MAX_CIRCUMFERENCE_QUERY_LIMIT = 20;
 export const MAX_WORKOUT_HISTORY_LIMIT = 50;
 export const MAX_WEIGHT_AVERAGE_DAYS = 30;
+export const MAX_STATISTICS_OVERVIEW_SESSIONS = 120;
 
 type UserScopedCtx = MutationCtx | QueryCtx;
 type UserScopedTable = "weights" | "circumferences";

@@ -40,6 +40,8 @@ export function StatisticsScreen() {
     );
   }
 
+  const sessionCountLabel = statistics.meta.isTruncated ? "Recent sessions" : "Completed sessions";
+
   return (
     <ScreenWrapper>
       <View className="gap-6">
@@ -50,7 +52,7 @@ export function StatisticsScreen() {
 
         <View className="flex-row flex-wrap gap-3">
           <StatisticsSummaryCard
-            label="Completed sessions"
+            label={sessionCountLabel}
             value={formatStatNumber(statistics.summary.totalSessions)}
           />
           <StatisticsSummaryCard
@@ -70,6 +72,11 @@ export function StatisticsScreen() {
             value={formatDurationMs(statistics.summary.averageSessionDurationMs)}
           />
         </View>
+        {statistics.meta.isTruncated ? (
+          <Text className="text-xs text-text-tertiary">
+            Based on your most recent {formatStatNumber(statistics.meta.analyzedSessionCount)} completed workouts.
+          </Text>
+        ) : null}
 
         <View className="gap-3">
           <View className="flex-row items-center justify-between">
