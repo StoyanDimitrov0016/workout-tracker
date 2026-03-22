@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { InlineErrorBanner } from "@/components/feedback/inline-error-banner";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { RestTimer } from "@/features/start-session/components/rest-timer";
 import { SessionExerciseCard } from "@/features/start-session/components/session-exercise-card";
@@ -32,11 +33,7 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
 
   return (
     <View className="gap-6">
-      {errorMessage ? (
-        <View className="rounded-2xl border border-status-error/20 bg-status-error/10 p-4">
-          <Text className="text-sm text-status-error">{errorMessage}</Text>
-        </View>
-      ) : null}
+      {errorMessage ? <InlineErrorBanner message={errorMessage} /> : null}
 
       <View className="gap-1">
         <Text className="text-sm text-text-tertiary">Active session</Text>

@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { ExerciseStatCard } from "@/features/statistics/components/exercise-stat-card";
 import { RecentSessionCard } from "@/features/statistics/components/recent-session-card";
@@ -15,7 +16,7 @@ export function StatisticsScreen() {
   if (statistics === undefined) {
     return (
       <ScreenWrapper>
-        <Text className="text-text-secondary">Loading...</Text>
+        <ScreenStateMessage title="Loading..." />
       </ScreenWrapper>
     );
   }
@@ -24,13 +25,10 @@ export function StatisticsScreen() {
     return (
       <ScreenWrapper>
         <View className="gap-4">
-          <View className="gap-1">
-            <Text className="text-sm text-text-tertiary">Statistics</Text>
-            <Text className="text-2xl font-semibold text-text-primary">No completed workouts yet</Text>
-          </View>
-          <Text className="text-sm text-text-secondary">
-            Finish your first workout session to unlock volume, recent session history, and exercise frequency.
-          </Text>
+          <ScreenStateMessage
+            title="No completed workouts yet"
+            description="Finish your first workout session to unlock volume, recent session history, and exercise frequency."
+          />
           <Pressable
             onPress={() => router.push("/start-session")}
             className="rounded-xl bg-primary px-4 py-3"

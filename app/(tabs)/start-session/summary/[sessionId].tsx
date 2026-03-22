@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { InlineErrorBanner } from "@/components/feedback/inline-error-banner";
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
@@ -25,18 +27,14 @@ export default function WorkoutSummaryScreen() {
       <Stack.Screen options={{ title: "Workout summary", headerTitle: "Workout summary" }} />
 
       {sessionId === null ? (
-        <Text className="text-text-secondary">Invalid workout.</Text>
+        <ScreenStateMessage title="Invalid workout." />
       ) : session === undefined ? (
-        <Text className="text-text-secondary">Loading...</Text>
+        <ScreenStateMessage title="Loading..." />
       ) : session === null ? (
-        <Text className="text-text-secondary">Workout not found.</Text>
+        <ScreenStateMessage title="Workout not found." />
       ) : (
         <View className="gap-6">
-          {errorMessage ? (
-            <View className="rounded-2xl border border-status-error/20 bg-status-error/10 p-4">
-              <Text className="text-sm text-status-error">{errorMessage}</Text>
-            </View>
-          ) : null}
+          {errorMessage ? <InlineErrorBanner message={errorMessage} /> : null}
 
           <View className="gap-1">
             <Text className="text-sm text-text-tertiary">Workout complete</Text>

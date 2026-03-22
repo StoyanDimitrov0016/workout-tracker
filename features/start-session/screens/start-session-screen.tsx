@@ -3,6 +3,7 @@ import { Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery } from "convex/react";
 
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { api } from "@/convex/_generated/api";
 import { ActiveSessionWorkspace } from "@/features/start-session/components/active-session-workspace";
@@ -26,7 +27,7 @@ export function StartSessionScreen() {
   if (split === undefined || activeSession === undefined || upcomingAvailability === undefined) {
     return (
       <ScreenWrapper>
-        <Text className="text-text-secondary">Loading...</Text>
+        <ScreenStateMessage title="Loading..." />
       </ScreenWrapper>
     );
   }
@@ -91,7 +92,7 @@ export function StartSessionScreen() {
           }}
         />
       ) : (
-        <Text className="text-text-secondary">Loading...</Text>
+        <ScreenStateMessage title="Loading..." />
       )}
     </ScreenWrapper>
   );

@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { OverviewMetricCard } from "@/features/overview/components/overview-metric-card";
 import { OverviewSplitDayCard } from "@/features/overview/components/overview-split-day-card";
@@ -27,7 +28,7 @@ export function OverviewScreen() {
   if (isLoading) {
     return (
       <ScreenWrapper>
-        <Text className="text-text-secondary">Loading...</Text>
+        <ScreenStateMessage title="Loading..." />
       </ScreenWrapper>
     );
   }

@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
-import { Text } from "react-native";
 
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { statisticsResource } from "@/features/statistics/data/statistics-resource";
 import { WorkoutSessionDetailContent } from "@/features/statistics/components/workout-session-detail-content";
@@ -18,11 +18,11 @@ export default function WorkoutSessionDetailScreen() {
       <Stack.Screen options={{ title: "Workout", headerTitle: "Workout" }} />
 
       {sessionId === null ? (
-        <Text className="text-text-secondary">Invalid session.</Text>
+        <ScreenStateMessage title="Invalid session." />
       ) : session === undefined ? (
-        <Text className="text-text-secondary">Loading...</Text>
+        <ScreenStateMessage title="Loading..." />
       ) : session === null ? (
-        <Text className="text-text-secondary">Workout not found.</Text>
+        <ScreenStateMessage title="Workout not found." />
       ) : (
         <WorkoutSessionDetailContent session={session} />
       )}
