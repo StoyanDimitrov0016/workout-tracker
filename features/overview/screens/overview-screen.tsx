@@ -28,7 +28,7 @@ export function OverviewScreen() {
   if (isLoading) {
     return (
       <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." />
+        <ScreenStateMessage title="Loading..." showSpinner />
       </ScreenWrapper>
     );
   }

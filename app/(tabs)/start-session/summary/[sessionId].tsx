@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
-
 import { InlineErrorBanner } from "@/components/feedback/inline-error-banner";
+import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
@@ -13,6 +13,8 @@ import {
 } from "@/hooks/use-validated-local-search-param";
 import { formatDateTime } from "@/utils/format/date-time";
 import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";
+
+export { RouteErrorBoundary as ErrorBoundary };
 
 export default function WorkoutSummaryScreen() {
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function WorkoutSummaryScreen() {
       {sessionId === null ? (
         <ScreenStateMessage title="Invalid workout." />
       ) : session === undefined ? (
-        <ScreenStateMessage title="Loading..." />
+        <ScreenStateMessage title="Loading..." showSpinner />
       ) : session === null ? (
         <ScreenStateMessage title="Workout not found." />
       ) : (

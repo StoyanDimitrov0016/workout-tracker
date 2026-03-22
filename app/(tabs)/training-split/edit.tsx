@@ -1,9 +1,12 @@
 import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
-
+import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { SplitBuilder } from "@/features/splits/components/split-builder";
 import { splitResource } from "@/features/splits/data/split-resource";
+
+export { RouteErrorBoundary as ErrorBoundary };
 
 export default function TrainingSplitEdit() {
   const router = useRouter();
@@ -12,7 +15,7 @@ export default function TrainingSplitEdit() {
   if (split === undefined) {
     return (
       <ScreenWrapper>
-        <Text className="text-text-secondary">Loading...</Text>
+        <ScreenStateMessage title="Loading..." showSpinner />
       </ScreenWrapper>
     );
   }

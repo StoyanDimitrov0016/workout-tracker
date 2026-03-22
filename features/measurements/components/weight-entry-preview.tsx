@@ -44,7 +44,7 @@ export function WeightEntryPreview() {
         Undo removes your most recent entry if you made a typo.
       </Text>
       <View className="gap-2">
-        {entries === undefined && <Text className="text-text-tertiary">Loading...</Text>}
+        {entries === undefined && <Text className="text-text-tertiary">Loading recent entries...</Text>}
         {entries?.length === 0 && (
           <Text className="text-text-tertiary">No entries yet. Log your first weight above.</Text>
         )}
