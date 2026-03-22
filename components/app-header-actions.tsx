@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/expo";
 import { Image, Pressable, Text, View } from "react-native";
 
 function getInitials(name?: string | null) {

@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "@clerk/expo";
 import { Redirect } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { ActivityIndicator, View } from "react-native";
