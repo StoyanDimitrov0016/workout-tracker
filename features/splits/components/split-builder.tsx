@@ -6,17 +6,16 @@ import {
   type BuilderDay,
   type BuilderExercise,
   type BuilderSetTarget,
-  type SplitDayInput,
+  type SplitFormValues,
   type SplitInput,
 } from "@/features/splits/components/split-builder-types";
 import { SplitBuilderStepOne } from "@/features/splits/components/split-builder-step-one";
 import { SplitBuilderStepTwo } from "@/features/splits/components/split-builder-step-two";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
 import { splitResource } from "@/features/splits/data/split-resource";
-import {
-  parseValidatedPositiveInteger,
-  validateTrainingDays,
-} from "@/features/splits/utils/validation";
+import { SplitMapper } from "@/features/splits/mappers/split-mapper";
+import { SplitSchema } from "@/features/splits/schemas/split-schema";
+import { validateTrainingDays } from "@/features/splits/utils/validation";
 
 interface SplitBuilderProps {
   initialSplit: SplitInput | null;
@@ -41,47 +40,16 @@ function createDefaultSetTargets(count: number) {
   return Array.from({ length: safeCount }, () => ({ ...DEFAULT_SET_TARGET }));
 }
 
-function ensureSetTargets(setTargets: BuilderSetTarget[]) {
-  return setTargets.length > 0 ? setTargets : createDefaultSetTargets(1);
-}
-
 function getPlaceholderForIndex(index: number) {
   return DAY_TITLE_PLACEHOLDERS[index % DAY_TITLE_PLACEHOLDERS.length];
-}
-
-function buildInitialDays(split: SplitInput | null): BuilderDay[] {
-  const lookup = new Map<number, SplitDayInput>(split?.days.map((day) => [day.weekday, day]) ?? []);
-
-  return WEEKDAYS.map((weekday) => {
-    const day = lookup.get(weekday.weekday);
-    return {
-      weekday: weekday.weekday,
-      label: weekday.label,
-      isTraining: Boolean(day),
-      title: day?.title ?? "",
-      exercises:
-        day?.exercises.map((exercise) => {
-          const mappedTargets = exercise.setTargets.map((target) => ({
-            reps: String(target.reps),
-            restSec: String(target.restSec),
-          }));
-          const safeTargets = ensureSetTargets(mappedTargets);
-
-          return {
-            exerciseId: exercise.exerciseId,
-            exerciseName: exercise.exerciseName,
-            setTargets: safeTargets,
-          };
-        }) ?? [],
-    };
-  });
 }
 
 export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilderProps) {
   const saveSplit = splitResource.useSave();
   const exercises = splitResource.useExercises();
-  const [name, setName] = useState(initialSplit?.name ?? "");
-  const [days, setDays] = useState<BuilderDay[]>(() => buildInitialDays(initialSplit));
+  const initialFormValues = SplitMapper.toFormValues(initialSplit);
+  const [name, setName] = useState(initialFormValues.name);
+  const [days, setDays] = useState<BuilderDay[]>(initialFormValues.days);
   const [step, setStep] = useState<1 | 2>(1);
   const [searchText, setSearchText] = useState("");
   const [debouncedText, setDebouncedText] = useState("");
@@ -231,23 +199,16 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
 
     setSaveErrorMessage(null);
     setIsSaving(true);
-    const payloadDays = days
-      .filter((day) => day.isTraining)
-      .map((day) => ({
-        weekday: day.weekday,
-        title: day.title.trim() || "Training",
-        exercises: day.exercises.map((exercise) => ({
-          exerciseId: exercise.exerciseId,
-          exerciseName: exercise.exerciseName,
-          setTargets: ensureSetTargets(exercise.setTargets).map((set) => ({
-            reps: parseValidatedPositiveInteger(set.reps),
-            restSec: parseValidatedPositiveInteger(set.restSec),
-          })),
-        })),
-      }));
+    const input = SplitMapper.toInput({ name, days } satisfies SplitFormValues);
+    const parsed = SplitSchema.safeParse(input);
+    if (!parsed.success) {
+      setSaveErrorMessage("Fix the highlighted set targets before saving your split.");
+      setIsSaving(false);
+      return;
+    }
 
     try {
-      await saveSplit({ name: name.trim() || "My Split", days: payloadDays });
+      await saveSplit(input);
       onSaved();
     } catch (error) {
       setSaveErrorMessage(error instanceof Error ? error.message : "Could not save your split.");

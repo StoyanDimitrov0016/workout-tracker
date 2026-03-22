@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -6,9 +5,12 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { MeasurementSaveFeedback } from "@/features/measurements/components/measurement-save-feedback";
 import { WeightEntryAdjuster } from "@/features/measurements/components/weight-entry-adjuster";
 import { measurementsResource } from "@/features/measurements/data/measurements-resource";
-import type { WeightEntryFormValues } from "@/features/measurements/schemas/weight-entry-schema";
-import { weightEntrySchema } from "@/features/measurements/schemas/weight-entry-schema";
-import { clampWeight, formatWeightKg, parseWeightKg } from "@/features/measurements/utils/weight";
+import {
+  WeightEntryMapper,
+  type WeightEntryFormValues,
+} from "@/features/measurements/mappers/weight-entry-mapper";
+import { WeightEntrySchema } from "@/features/measurements/schemas/weight-entry-schema";
+import { clampWeight, formatWeightKg } from "@/features/measurements/utils/weight";
 
 export function WeightEntryForm() {
   const addWeightEntry = measurementsResource.weight.useCreate();
@@ -18,11 +20,12 @@ export function WeightEntryForm() {
   const {
     control,
     handleSubmit,
+    clearErrors,
+    setError,
     setValue,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<WeightEntryFormValues>({
     defaultValues: { weightKg: "" },
-    resolver: zodResolver(weightEntrySchema),
   });
 
   const [deltaKg, setDeltaKg] = useState(0);
@@ -32,10 +35,7 @@ export function WeightEntryForm() {
   useEffect(() => {
     if (latestWeightKg === null || isDirty) return;
 
-    setValue("weightKg", formatWeightKg(latestWeightKg), {
-      shouldDirty: false,
-      shouldValidate: true,
-    });
+    setValue("weightKg", formatWeightKg(latestWeightKg), { shouldDirty: false });
     setDeltaKg(0);
   }, [latestWeightKg, isDirty, setValue]);
 
@@ -43,30 +43,34 @@ export function WeightEntryForm() {
     if (latestWeightKg === null) return;
 
     const nextValue = clampWeight(latestWeightKg + delta);
+    clearErrors("weightKg");
     setSaveErrorMessage(null);
     setSuccessMessage(null);
     setDeltaKg(delta);
-    setValue("weightKg", formatWeightKg(nextValue), {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
+    setValue("weightKg", formatWeightKg(nextValue), { shouldDirty: true });
   };
 
   const onSubmit = async (values: WeightEntryFormValues) => {
-    const parsed = parseWeightKg(values.weightKg);
-    if (parsed === null) return;
+    const parsed = WeightEntrySchema.safeParse(WeightEntryMapper.toInput(values));
+
+    if (!parsed.success) {
+      const issue = parsed.error.issues.find((candidate) => candidate.path[0] === "weightKg");
+      setError("weightKg", {
+        type: "validate",
+        message: issue?.message ?? "Enter a valid number.",
+      });
+      return;
+    }
 
     try {
       setSaveErrorMessage(null);
-      await addWeightEntry({ weightKg: parsed });
-      setValue("weightKg", formatWeightKg(parsed), {
+      await addWeightEntry(parsed.data);
+      setValue("weightKg", WeightEntryMapper.toFormValues(parsed.data).weightKg, {
         shouldDirty: false,
-        shouldValidate: true,
       });
       setDeltaKg(0);
       setSuccessMessage("Weight entry saved.");
     } catch (error) {
-      setValue("weightKg", values.weightKg, { shouldValidate: true });
       setSuccessMessage(null);
       setSaveErrorMessage(
         error instanceof Error ? error.message : "Could not save your weight entry."
@@ -84,6 +88,7 @@ export function WeightEntryForm() {
           <TextInput
             value={value ?? ""}
             onChangeText={(text) => {
+              clearErrors("weightKg");
               setDeltaKg(0);
               setSaveErrorMessage(null);
               setSuccessMessage(null);

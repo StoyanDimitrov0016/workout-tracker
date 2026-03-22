@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -6,27 +5,24 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { MeasurementSaveFeedback } from "@/features/measurements/components/measurement-save-feedback";
 import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import {
-  circumferenceFieldNames,
-  circumferenceLabels,
-} from "@/features/measurements/constants/circumference-fields";
-import {
-  circumferenceSchema,
+  CircumferenceMapper,
   type CircumferenceFormValues,
-} from "@/features/measurements/schemas/circumference-schema";
-import type { CircumferenceMutationInput } from "@/features/measurements/types/circumference";
-import { parseMeasurementInput } from "@/features/measurements/utils/parse-measurement-input";
+} from "@/features/measurements/mappers/circumference-mapper";
+import {
+  circumferenceLabels,
+  type CircumferenceField,
+  circumferenceFieldNames,
+} from "@/features/measurements/constants/circumference-fields";
+import { CircumferenceSchema } from "@/features/measurements/schemas/circumference-schema";
 
-const defaultValues = circumferenceFieldNames.reduce((acc, key) => {
-  acc[key] = "";
-  return acc;
-}, {} as CircumferenceFormValues);
+const defaultValues = CircumferenceMapper.toFormValues(null);
 
 type MeasurementFieldProps = {
   control: ReturnType<typeof useForm<CircumferenceFormValues>>["control"];
   errorMessage?: string;
   inputClassName: string;
   name: keyof CircumferenceFormValues;
-  onEdit: () => void;
+  onEdit: (name: keyof CircumferenceFormValues) => void;
   label: string;
 };
 
@@ -57,7 +53,7 @@ function MeasurementField({
           <TextInput
             value={value}
             onChangeText={(text) => {
-              onEdit();
+              onEdit(name);
               onChange(text);
             }}
             onBlur={onBlur}
@@ -77,30 +73,45 @@ export function CircumferenceEntryForm() {
   const {
     control,
     handleSubmit,
+    clearErrors,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<CircumferenceFormValues>({
     defaultValues,
-    resolver: zodResolver(circumferenceSchema),
   });
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const clearFeedback = () => {
+  const clearFeedback = (name?: CircumferenceField) => {
+    if (name) {
+      clearErrors(name);
+    }
     setSaveErrorMessage(null);
     setSuccessMessage(null);
   };
 
   const onSubmit = async (values: CircumferenceFormValues) => {
-    const parsedValues = circumferenceFieldNames.reduce((acc, key) => {
-      const { value } = parseMeasurementInput(values[key]);
-      acc[key] = value;
-      return acc;
-    }, {} as CircumferenceMutationInput);
+    const parsed = CircumferenceSchema.safeParse(CircumferenceMapper.toInput(values));
+
+    if (!parsed.success) {
+      parsed.error.issues.forEach((issue) => {
+        const fieldName = issue.path[0];
+        if (!circumferenceFieldNames.includes(fieldName as CircumferenceField)) {
+          return;
+        }
+
+        setError(fieldName as CircumferenceField, {
+          type: "validate",
+          message: issue.message,
+        });
+      });
+      return;
+    }
 
     try {
       setSaveErrorMessage(null);
-      await addCircumferenceEntry(parsedValues);
+      await addCircumferenceEntry(parsed.data);
       reset(defaultValues);
       setSuccessMessage("Circumference measurements saved.");
     } catch (error) {

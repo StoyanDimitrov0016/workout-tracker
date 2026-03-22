@@ -5,12 +5,12 @@ import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { statisticsResource } from "@/features/statistics/data/statistics-resource";
 import { WorkoutSessionDetailContent } from "@/features/statistics/components/workout-session-detail-content";
 import {
-  convexIdParamSchema,
+  ConvexIdParamSchema,
   useValidatedLocalSearchParam,
 } from "@/hooks/use-validated-local-search-param";
 
 export default function WorkoutSessionDetailScreen() {
-  const sessionId = useValidatedLocalSearchParam("sessionId", convexIdParamSchema<"workoutSessions">());
+  const sessionId = useValidatedLocalSearchParam("sessionId", ConvexIdParamSchema<"workoutSessions">());
   const session = statisticsResource.useSessionDetail(sessionId);
 
   return (

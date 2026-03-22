@@ -8,7 +8,7 @@ import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import {
-  convexIdParamSchema,
+  ConvexIdParamSchema,
   useValidatedLocalSearchParam,
 } from "@/hooks/use-validated-local-search-param";
 import { formatDateTime } from "@/utils/format/date-time";
@@ -16,7 +16,7 @@ import { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/form
 
 export default function WorkoutSummaryScreen() {
   const router = useRouter();
-  const sessionId = useValidatedLocalSearchParam("sessionId", convexIdParamSchema<"workoutSessions">());
+  const sessionId = useValidatedLocalSearchParam("sessionId", ConvexIdParamSchema<"workoutSessions">());
   const reopenSession = workoutSessionResource.useReopen();
   const session = workoutSessionResource.useSummary(sessionId);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

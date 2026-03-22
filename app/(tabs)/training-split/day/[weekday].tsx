@@ -7,12 +7,12 @@ import { splitResource } from "@/features/splits/data/split-resource";
 import { TrainingSplitDayContent } from "@/features/splits/components/training-split-day-content";
 import {
   useValidatedLocalSearchParam,
-  weekdayParamSchema,
+  WeekdayParamSchema,
 } from "@/hooks/use-validated-local-search-param";
 
 export default function TrainingSplitDay() {
   const router = useRouter();
-  const weekday = useValidatedLocalSearchParam("weekday", weekdayParamSchema);
+  const weekday = useValidatedLocalSearchParam("weekday", WeekdayParamSchema);
   const split = splitResource.useMine();
 
   if (split === undefined) {
