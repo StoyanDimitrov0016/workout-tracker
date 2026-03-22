@@ -1,4 +1,4 @@
-import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/expo";
 import { router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
