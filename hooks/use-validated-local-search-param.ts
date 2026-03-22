@@ -1,19 +1,19 @@
 import { useLocalSearchParams } from "expo-router";
-import { z, type ZodType } from "zod";
+import { z } from "zod";
 
 import type { Id, TableNames } from "@/convex/_generated/dataModel";
 
-const convexIdStringSchema = z.string().trim().min(1).max(64);
+const ConvexIdStringSchema = z.string().trim().min(1).max(64);
 
-export function convexIdParamSchema<TableName extends TableNames>() {
-  return convexIdStringSchema.transform((value) => value as Id<TableName>);
+export function ConvexIdParamSchema<TableName extends TableNames>() {
+  return ConvexIdStringSchema.transform((value) => value as Id<TableName>);
 }
 
-export const weekdayParamSchema = z.coerce.number().int().min(1).max(7);
+export const WeekdayParamSchema = z.coerce.number().int().min(1).max(7);
 
 export function useValidatedLocalSearchParam<Output>(
   name: string,
-  schema: ZodType<Output>
+  schema: z.ZodType<Output>
 ) {
   const params = useLocalSearchParams() as Record<string, string | string[] | undefined>;
   const rawValue = params[name];

@@ -1,6 +1,7 @@
-﻿import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 import { formatSetTargetsSummary } from "@/features/splits/utils/targets";
+import { NumberMapper } from "@/utils/form/number-mapper";
 
 interface SessionExerciseCardProps {
   name: string;
@@ -22,7 +23,7 @@ export function SessionExerciseCard({
   onChangeSet,
 }: SessionExerciseCardProps) {
   const totalReps = sets.reduce((sum, set) => sum + Number.parseInt(set.reps || "0", 10), 0);
-  const totalWeight = sets.reduce((sum, set) => sum + Number.parseFloat(set.weightKg || "0"), 0);
+  const totalWeight = sets.reduce((sum, set) => sum + NumberMapper.toNumber(set.weightKg || "0"), 0);
   const averageWeight = sets.length > 0 ? totalWeight / sets.length : 0;
   const targetSummary = formatSetTargetsSummary(setTargets);
 

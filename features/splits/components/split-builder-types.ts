@@ -22,6 +22,11 @@ export type SplitInput = {
   days: SplitDayInput[];
 };
 
+export type SplitFormValues = {
+  name: string;
+  days: BuilderDay[];
+};
+
 export type BuilderSetTarget = {
   reps: string;
   restSec: string;

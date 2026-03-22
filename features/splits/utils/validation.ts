@@ -3,6 +3,8 @@ import type {
   BuilderExercise,
   BuilderSetTarget,
 } from "@/features/splits/components/split-builder-types";
+import { SplitMapper } from "@/features/splits/mappers/split-mapper";
+import { SplitSetTargetSchema } from "@/features/splits/schemas/split-schema";
 
 export type SetTargetFieldError = {
   reps?: string;
@@ -15,26 +17,21 @@ export type ExerciseValidationResult = {
   invalidFieldCount: number;
 };
 
-function parsePositiveInteger(value: string) {
-  const trimmed = value.trim();
-  if (trimmed === "") return null;
-
-  const parsed = Number(trimmed);
-  if (!Number.isInteger(parsed) || parsed <= 0) return null;
-
-  return parsed;
-}
-
 export function validateSetTarget(setTarget: BuilderSetTarget): SetTargetFieldError {
+  const result = SplitSetTargetSchema.safeParse(SplitMapper.toSetTargetInput(setTarget));
+  if (result.success) {
+    return {};
+  }
+
   const errors: SetTargetFieldError = {};
-
-  if (parsePositiveInteger(setTarget.reps) === null) {
-    errors.reps = "Use a whole number above 0.";
-  }
-
-  if (parsePositiveInteger(setTarget.restSec) === null) {
-    errors.restSec = "Use seconds above 0.";
-  }
+  result.error.issues.forEach((issue) => {
+    if (issue.path[0] === "reps") {
+      errors.reps = issue.message;
+    }
+    if (issue.path[0] === "restSec") {
+      errors.restSec = issue.message;
+    }
+  });
 
   return errors;
 }
@@ -75,12 +72,4 @@ export function validateTrainingDays(days: BuilderDay[]) {
     hasErrors: totalInvalidFields > 0,
     totalInvalidFields,
   };
-}
-
-export function parseValidatedPositiveInteger(value: string) {
-  const parsed = parsePositiveInteger(value);
-  if (parsed === null) {
-    throw new Error("Expected a validated positive integer.");
-  }
-  return parsed;
 }

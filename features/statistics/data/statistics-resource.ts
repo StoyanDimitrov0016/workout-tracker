@@ -1,11 +1,15 @@
-import { useQuery } from "convex/react";
+import { usePaginatedQuery, useQuery } from "convex/react";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
+export const WORKOUT_HISTORY_PAGE_SIZE = 20;
+
 export const statisticsResource = {
-  useHistory(limit = 50) {
-    return useQuery(api.workoutSessions.listCompleted, { limit });
+  useHistory() {
+    return usePaginatedQuery(api.workoutSessions.listCompletedPaginated, {}, {
+      initialNumItems: WORKOUT_HISTORY_PAGE_SIZE,
+    });
   },
 
   useOverview() {

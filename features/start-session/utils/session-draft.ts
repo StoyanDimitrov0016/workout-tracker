@@ -1,4 +1,5 @@
 import type { Doc } from "@/convex/_generated/dataModel";
+import { NumberMapper } from "@/utils/form/number-mapper";
 import { formatWeightKg } from "@/utils/format/weight";
 
 export type SessionSetDraft = {
@@ -36,7 +37,7 @@ export function buildSessionEntryDrafts(session: Doc<"workoutSessions">) {
 }
 
 export function parseSessionDraftNumber(value: string) {
-  const normalized = value.replace(",", ".").trim();
+  const normalized = NumberMapper.normalizeDecimalSeparator(value);
   if (!normalized) return null;
 
   const parsed = Number(normalized);

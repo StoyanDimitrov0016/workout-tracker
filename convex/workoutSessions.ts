@@ -1,3 +1,4 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 
 import { requireAuth } from "./auth";
@@ -7,8 +8,7 @@ import { mutation, query } from "./_generated/server";
 import {
   MAX_SESSION_SETS_PER_EXERCISE,
   MAX_SPLIT_EXERCISES_PER_DAY,
-  MAX_WORKOUT_HISTORY_LIMIT,
-  assertPositiveLimit,
+  MAX_STATISTICS_OVERVIEW_SESSIONS,
 } from "./usageLimits";
 import {
   buildCompletedSessionDetail,
@@ -22,6 +22,7 @@ import {
   getSessionTotals,
   getUpcomingTrainingDay,
   hasMeaningfulSessionProgress,
+  sortTrainingDaysByUpcoming,
   updatePerformedSet,
 } from "./workoutSessionDomain";
 
@@ -126,15 +127,67 @@ export const getUpcomingAvailability = query({
   },
 });
 
+export const getPlannedDayOptions = query({
+  args: {},
+  handler: async (ctx) => {
+    const userToken = await requireAuth(ctx);
+    const split = await ctx.db
+      .query("splits")
+      .withIndex("by_user", (q) => q.eq("userToken", userToken))
+      .unique();
+
+    if (!split) {
+      return { status: "no_split" as const };
+    }
+
+    const trainingDays = split.days.filter((day) => day.exercises.length > 0);
+    if (trainingDays.length === 0) {
+      return { status: "no_training_day" as const };
+    }
+
+    const upcomingDay = getUpcomingTrainingDay(split);
+    const trainingDateKey = getCurrentDateKey();
+    const orderedDays = sortTrainingDaysByUpcoming(trainingDays);
+
+    const days = await Promise.all(
+      orderedDays.map(async (day) => {
+        const existingSession = await getExistingTrainingDaySession(
+          ctx,
+          userToken,
+          day.weekday,
+          trainingDateKey
+        );
+
+        return {
+          weekday: day.weekday,
+          title: day.title,
+          exercises: day.exercises,
+          isRecommended: upcomingDay?.weekday === day.weekday,
+          status: existingSession?.status === "completed" ? ("completed_today" as const) : ("available" as const),
+          sessionId: existingSession?._id ?? null,
+        };
+      })
+    );
+
+    return {
+      status: "ready" as const,
+      days,
+    };
+  },
+});
+
 export const getStatisticsOverview = query({
   args: {},
   handler: async (ctx) => {
     const userToken = await requireAuth(ctx);
-    const sessions = await ctx.db
+    const rawSessions = await ctx.db
       .query("workoutSessions")
       .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
       .order("desc")
-      .collect();
+      .take(MAX_STATISTICS_OVERVIEW_SESSIONS + 1);
+
+    const hasMoreSessions = rawSessions.length > MAX_STATISTICS_OVERVIEW_SESSIONS;
+    const sessions = rawSessions.slice(0, MAX_STATISTICS_OVERVIEW_SESSIONS);
 
     const recentSessions = sessions.slice(0, 6).map(buildCompletedSessionSummary);
 
@@ -209,6 +262,10 @@ export const getStatisticsOverview = query({
       .slice(0, 8);
 
     return {
+      meta: {
+        analyzedSessionCount: sessions.length,
+        isTruncated: hasMoreSessions,
+      },
       summary: {
         totalSessions: sessions.length,
         totalSets,
@@ -222,21 +279,22 @@ export const getStatisticsOverview = query({
   },
 });
 
-export const listCompleted = query({
+export const listCompletedPaginated = query({
   args: {
-    limit: v.optional(v.number()),
+    paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 20;
-    assertPositiveLimit(limit, MAX_WORKOUT_HISTORY_LIMIT, "Workout history limit");
     const userToken = await requireAuth(ctx);
-    const sessions = await ctx.db
+    const result = await ctx.db
       .query("workoutSessions")
       .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
       .order("desc")
-      .take(limit);
+      .paginate(args.paginationOpts);
 
-    return sessions.map(buildCompletedSessionSummary);
+    return {
+      ...result,
+      page: result.page.map(buildCompletedSessionSummary),
+    };
   },
 });
 
@@ -331,6 +389,69 @@ export const startFromUpcomingDay = mutation({
       status: "active",
       startedAt: Date.now(),
       exercises: buildSessionExercises(upcomingDay.exercises),
+    });
+  },
+});
+
+export const startFromPlannedDay = mutation({
+  args: {
+    weekday: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userToken = await requireAuth(ctx);
+    const trainingDateKey = getCurrentDateKey();
+
+    const activeSession = await ctx.db
+      .query("workoutSessions")
+      .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "active"))
+      .order("desc")
+      .first();
+
+    if (activeSession) {
+      return activeSession._id;
+    }
+
+    const split = await ctx.db
+      .query("splits")
+      .withIndex("by_user", (q) => q.eq("userToken", userToken))
+      .unique();
+
+    if (!split) {
+      throw new Error("Create a split before starting a session.");
+    }
+
+    const plannedDay = split.days.find(
+      (day) => day.weekday === args.weekday && day.exercises.length > 0
+    );
+
+    if (!plannedDay) {
+      throw new Error("Choose a planned training day with exercises before starting.");
+    }
+
+    if (plannedDay.exercises.length > MAX_SPLIT_EXERCISES_PER_DAY) {
+      throw new Error("This training day has too many exercises to start safely.");
+    }
+
+    const existingSession = await getExistingTrainingDaySession(
+      ctx,
+      userToken,
+      plannedDay.weekday,
+      trainingDateKey
+    );
+
+    if (existingSession?.status === "completed") {
+      throw new Error("You already completed this planned workout today.");
+    }
+
+    return await ctx.db.insert("workoutSessions", {
+      userToken,
+      splitId: split._id,
+      trainingDateKey,
+      weekday: plannedDay.weekday,
+      title: plannedDay.title.trim() || "Training",
+      status: "active",
+      startedAt: Date.now(),
+      exercises: buildSessionExercises(plannedDay.exercises),
     });
   },
 });

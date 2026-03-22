@@ -2,6 +2,7 @@ import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { AppHeaderActions } from "@/components/app-header-actions";
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { DayCard } from "@/features/splits/components/day-card";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
@@ -17,7 +18,7 @@ export function TrainingSplitScreen() {
   if (split === undefined) {
     return (
       <ScreenWrapper>
-        <Text className="text-text-secondary">Loading...</Text>
+        <ScreenStateMessage title="Loading..." />
       </ScreenWrapper>
     );
   }

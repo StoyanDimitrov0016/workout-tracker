@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { OverviewMetricCard } from "@/features/overview/components/overview-metric-card";
 import { OverviewSplitDayCard } from "@/features/overview/components/overview-split-day-card";
@@ -27,7 +28,7 @@ export function OverviewScreen() {
   if (isLoading) {
     return (
       <ScreenWrapper>
-        <Text className="text-text-secondary">Loading...</Text>
+        <ScreenStateMessage title="Loading..." />
       </ScreenWrapper>
     );
   }
@@ -49,6 +50,9 @@ export function OverviewScreen() {
   }
 
   const loadedStatistics = statistics!;
+  const sessionCountLabel = loadedStatistics.meta.isTruncated
+    ? "Recent sessions"
+    : "Completed sessions";
 
   return (
     <ScreenWrapper>
@@ -196,7 +200,7 @@ export function OverviewScreen() {
             <Text className="text-sm text-text-tertiary">Training momentum</Text>
             <View className="flex-row flex-wrap gap-3">
               <OverviewMetricCard
-                label="Completed sessions"
+                label={sessionCountLabel}
                 value={formatStatNumber(loadedStatistics.summary.totalSessions)}
               />
               <OverviewMetricCard
@@ -208,6 +212,12 @@ export function OverviewScreen() {
                 value={formatDurationMs(loadedStatistics.summary.averageSessionDurationMs)}
               />
             </View>
+            {loadedStatistics.meta.isTruncated ? (
+              <Text className="text-xs text-text-tertiary">
+                Based on your most recent{" "}
+                {formatStatNumber(loadedStatistics.meta.analyzedSessionCount)} completed workouts.
+              </Text>
+            ) : null}
             <Pressable onPress={() => router.push("/statistics/history")} className="self-start">
               <Text className="text-sm font-semibold text-primary">Open workout history</Text>
             </Pressable>
