@@ -1,14 +1,11 @@
-import { useState } from "react";
-import { Text } from "react-native";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { useQuery } from "convex/react";
 
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
-import { api } from "@/convex/_generated/api";
 import { ActiveSessionWorkspace } from "@/features/start-session/components/active-session-workspace";
+import { PlannedSessionDayPicker } from "@/features/start-session/components/planned-session-day-picker";
 import { StartSessionEmptyState } from "@/features/start-session/components/start-session-empty-state";
-import { UpcomingSessionPreview } from "@/features/start-session/components/upcoming-session-preview";
 import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -17,14 +14,33 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 export function StartSessionScreen() {
   const router = useRouter();
-  const split = useQuery(api.splits.getMine);
   const activeSession = workoutSessionResource.useActive();
-  const upcomingAvailability = workoutSessionResource.useUpcomingAvailability();
-  const startSession = workoutSessionResource.useStart();
+  const plannedDayOptions = workoutSessionResource.usePlannedDayOptions();
+  const startSession = workoutSessionResource.useStartPlannedDay();
   const [startErrorMessage, setStartErrorMessage] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const [selectedWeekday, setSelectedWeekday] = useState<number | null>(null);
 
-  if (split === undefined || activeSession === undefined || upcomingAvailability === undefined) {
+  useEffect(() => {
+    if (plannedDayOptions?.status !== "ready") {
+      return;
+    }
+
+    setSelectedWeekday((current) => {
+      if (current !== null && plannedDayOptions.days.some((day) => day.weekday === current)) {
+        return current;
+      }
+
+      const preferredDay =
+        plannedDayOptions.days.find((day) => day.status === "available" && day.isRecommended) ??
+        plannedDayOptions.days.find((day) => day.status === "available") ??
+        plannedDayOptions.days[0];
+
+      return preferredDay?.weekday ?? null;
+    });
+  }, [plannedDayOptions]);
+
+  if (activeSession === undefined || plannedDayOptions === undefined) {
     return (
       <ScreenWrapper>
         <ScreenStateMessage title="Loading..." />
@@ -32,7 +48,7 @@ export function StartSessionScreen() {
     );
   }
 
-  if (!activeSession && !split) {
+  if (!activeSession && plannedDayOptions.status === "no_split") {
     return (
       <ScreenWrapper>
         <StartSessionEmptyState
@@ -44,7 +60,7 @@ export function StartSessionScreen() {
     );
   }
 
-  if (!activeSession && upcomingAvailability?.status === "no_training_day") {
+  if (!activeSession && plannedDayOptions.status === "no_training_day") {
     return (
       <ScreenWrapper>
         <StartSessionEmptyState
@@ -61,29 +77,25 @@ export function StartSessionScreen() {
     <ScreenWrapper>
       {activeSession ? (
         <ActiveSessionWorkspace key={activeSession._id} session={activeSession} />
-      ) : upcomingAvailability?.status === "completed_today" ? (
-        <StartSessionEmptyState
-          title="Today's planned workout is already completed"
-          description="Review the summary or come back on your next scheduled training day."
-          actionLabel="View summary"
-          onAction={() =>
-            router.push({
-              pathname: "/start-session/summary/[sessionId]",
-              params: { sessionId: upcomingAvailability.sessionId },
-            })
-          }
-        />
-      ) : upcomingAvailability?.status === "available" ? (
-        <UpcomingSessionPreview
-          day={upcomingAvailability.day}
+      ) : plannedDayOptions.status === "ready" && selectedWeekday !== null ? (
+        <PlannedSessionDayPicker
+          days={plannedDayOptions.days}
+          selectedWeekday={selectedWeekday}
+          onSelectWeekday={setSelectedWeekday}
           isStarting={isStarting}
           errorMessage={startErrorMessage}
+          onOpenCompleted={(sessionId) =>
+            router.push({
+              pathname: "/start-session/summary/[sessionId]",
+              params: { sessionId },
+            })
+          }
           onStart={async () => {
             setStartErrorMessage(null);
             setIsStarting(true);
 
             try {
-              await startSession({});
+              await startSession({ weekday: selectedWeekday });
             } catch (error) {
               setStartErrorMessage(getErrorMessage(error, "Could not start the session."));
             } finally {

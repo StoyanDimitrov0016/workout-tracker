@@ -51,6 +51,22 @@ export function getUpcomingTrainingDay(split: SplitDoc) {
   return candidate;
 }
 
+export function sortTrainingDaysByUpcoming<Day extends { weekday: number }>(days: Day[]) {
+  const jsDay = new Date().getDay();
+  const today = jsDay === 0 ? 7 : jsDay + 1;
+
+  return [...days].sort((left, right) => {
+    const leftDelta = (left.weekday - today + 7) % 7;
+    const rightDelta = (right.weekday - today + 7) % 7;
+
+    if (leftDelta !== rightDelta) {
+      return leftDelta - rightDelta;
+    }
+
+    return left.weekday - right.weekday;
+  });
+}
+
 export function getDateKeyFromTimestamp(timestamp: number) {
   const date = new Date(timestamp);
   return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;

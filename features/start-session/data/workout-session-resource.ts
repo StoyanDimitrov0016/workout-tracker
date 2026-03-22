@@ -27,8 +27,8 @@ export const workoutSessionResource = {
     return useMutation(api.workoutSessions.reopen);
   },
 
-  useStart() {
-    return useMutation(api.workoutSessions.startFromUpcomingDay);
+  useStartPlannedDay() {
+    return useMutation(api.workoutSessions.startFromPlannedDay);
   },
 
   useSummary(sessionId: Id<"workoutSessions"> | null) {
@@ -42,8 +42,8 @@ export const workoutSessionResource = {
     return useMutation(api.workoutSessions.toggleExerciseDone);
   },
 
-  useUpcomingAvailability() {
-    return useQuery(api.workoutSessions.getUpcomingAvailability);
+  usePlannedDayOptions() {
+    return useQuery(api.workoutSessions.getPlannedDayOptions);
   },
 
   useUpdateSet() {
