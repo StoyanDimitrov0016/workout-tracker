@@ -36,7 +36,7 @@ export function CircumferenceEntryCarousel() {
             className="rounded-2xl border border-border bg-card p-4"
             style={{ width: cardWidth }}
           >
-            <Text className="text-text-tertiary">Loading...</Text>
+            <Text className="text-text-tertiary">Loading latest snapshots...</Text>
           </View>
         )}
         {entries?.length === 0 && (

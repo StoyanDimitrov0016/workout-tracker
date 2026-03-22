@@ -16,7 +16,7 @@ export function StatisticsScreen() {
   if (statistics === undefined) {
     return (
       <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." />
+        <ScreenStateMessage title="Loading..." showSpinner />
       </ScreenWrapper>
     );
   }

@@ -43,7 +43,7 @@ export function StartSessionScreen() {
   if (activeSession === undefined || plannedDayOptions === undefined) {
     return (
       <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." />
+        <ScreenStateMessage title="Loading..." showSpinner />
       </ScreenWrapper>
     );
   }
@@ -104,7 +104,7 @@ export function StartSessionScreen() {
           }}
         />
       ) : (
-        <ScreenStateMessage title="Loading..." />
+        <ScreenStateMessage title="Loading..." showSpinner />
       )}
     </ScreenWrapper>
   );

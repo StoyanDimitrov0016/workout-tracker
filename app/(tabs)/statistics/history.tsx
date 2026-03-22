@@ -9,6 +9,8 @@ import {
   WORKOUT_HISTORY_PAGE_SIZE,
 } from "@/features/statistics/data/statistics-resource";
 
+export { RouteErrorBoundary as ErrorBoundary } from "@/components/feedback/route-error-boundary";
+
 export default function WorkoutHistoryScreen() {
   const router = useRouter();
   const history = statisticsResource.useHistory();
@@ -18,7 +20,7 @@ export default function WorkoutHistoryScreen() {
       <Stack.Screen options={{ title: "Workout history", headerTitle: "Workout history" }} />
 
       {history.status === "LoadingFirstPage" ? (
-        <ScreenStateMessage title="Loading..." />
+        <ScreenStateMessage title="Loading..." showSpinner />
       ) : history.results.length === 0 ? (
         <ScreenStateMessage
           title="No completed workouts yet"

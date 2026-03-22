@@ -18,7 +18,7 @@ export function TrainingSplitScreen() {
   if (split === undefined) {
     return (
       <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." />
+        <ScreenStateMessage title="Loading..." showSpinner />
       </ScreenWrapper>
     );
   }
