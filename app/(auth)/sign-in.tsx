@@ -1,38 +1,18 @@
-import { useSSO } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
-import * as AuthSession from "expo-auth-session";
 import { useRouter } from "expo-router";
-import React, { useCallback } from "react";
+import React from "react";
 import { Pressable, Text, View, useColorScheme } from "react-native";
 
+import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { AuthTabs } from "@/components/auth/auth-tabs";
+import { InlineErrorBanner } from "@/components/feedback/inline-error-banner";
+import { useGoogleSso } from "@/hooks/use-google-sso";
 
 export default function SignIn() {
   const router = useRouter();
-  const { startSSOFlow } = useSSO();
+  const { clearError, errorMessage, isSubmitting, startGoogleSso } = useGoogleSso();
   const isDark = useColorScheme() === "dark";
   const accentColor = isDark ? "rgb(248 113 113)" : "rgb(239 68 68)";
-
-  const onGoogle = useCallback(async () => {
-    try {
-      const redirectUrl = AuthSession.makeRedirectUri({
-        scheme: "workouttracker",
-        path: "sso-callback",
-      });
-
-      const { createdSessionId, setActive } = await startSSOFlow({
-        strategy: "oauth_google",
-        redirectUrl,
-      });
-
-      if (createdSessionId) {
-        await setActive?.({ session: createdSessionId });
-        router.replace("/(tabs)/overview");
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, [router, startSSOFlow]);
 
   return (
     <View className="flex-1 bg-background px-6 pt-8">
@@ -54,13 +34,9 @@ export default function SignIn() {
               </Text>
             </View>
 
-            <Pressable
-              onPress={onGoogle}
-              className="mt-8 flex-row items-center justify-center gap-3 rounded-2xl bg-primary px-6 py-4 active:opacity-80"
-            >
-              <Ionicons name="logo-google" size={20} color="white" />
-              <Text className="text-base font-semibold text-white">Continue with Google</Text>
-            </Pressable>
+            {errorMessage ? <InlineErrorBanner message={errorMessage} /> : null}
+
+            <GoogleAuthButton isLoading={isSubmitting} onPress={startGoogleSso} />
 
             <View className="my-6 flex-row items-center">
               <View className="h-px flex-1 bg-border" />
@@ -69,7 +45,10 @@ export default function SignIn() {
             </View>
 
             <Pressable
-              onPress={() => router.replace("/(auth)/sign-up")}
+              onPress={() => {
+                clearError();
+                router.replace("/(auth)/sign-up");
+              }}
               className="rounded-2xl border border-border bg-surface px-6 py-4 active:opacity-80"
             >
               <Text className="text-center text-base font-semibold text-text-primary">
