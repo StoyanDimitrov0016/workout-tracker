@@ -4,6 +4,7 @@ import "../global.css";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { View } from "react-native";
 
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
@@ -11,6 +12,7 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export const unstable_settings = { anchor: "(tabs)" };
@@ -22,8 +24,17 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
 function RootNavigator() {
   const { isLoaded, isSignedIn } = useAuth();
 
-  // Prevent flicker while Clerk is loading session state
-  if (!isLoaded) return null;
+  if (!isLoaded) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background px-6">
+        <ScreenStateMessage
+          title="Loading account..."
+          description="Restoring your session."
+          showSpinner
+        />
+      </View>
+    );
+  }
 
   return (
     <Stack>

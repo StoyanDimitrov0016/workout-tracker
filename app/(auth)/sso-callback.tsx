@@ -1,17 +1,20 @@
 import { useAuth } from "@clerk/expo";
 import { Redirect } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 
-WebBrowser.maybeCompleteAuthSession();
+import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 
 export default function SsoCallback() {
   const { isLoaded, isSignedIn } = useAuth();
 
   if (!isLoaded) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
+      <View className="flex-1 items-center justify-center bg-background px-6">
+        <ScreenStateMessage
+          title="Completing sign-in..."
+          description="Finishing your Google authentication."
+          showSpinner
+        />
       </View>
     );
   }
