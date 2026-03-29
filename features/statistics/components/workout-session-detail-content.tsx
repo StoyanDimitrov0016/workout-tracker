@@ -23,7 +23,7 @@ type WorkoutSessionDetailContentProps = {
     exercises: Array<{
       exerciseId: string;
       exerciseName: string;
-      targetSets: Array<{ reps: number; restSec: number }>;
+      targetSets: Array<{ reps: number; weightKg: number; restSec: number }>;
       isDone: boolean;
       totalSets: number;
       totalReps: number;
@@ -47,7 +47,9 @@ export function WorkoutSessionDetailContent({ session }: WorkoutSessionDetailCon
     <View className="gap-6">
       <View className="gap-1">
         <Text className="text-sm text-text-tertiary">Workout detail</Text>
-        <Text className="text-2xl font-semibold text-text-primary">{session.title || "Training"}</Text>
+        <Text className="text-2xl font-semibold text-text-primary">
+          {session.title || "Training"}
+        </Text>
         <Text className="text-sm text-text-secondary">
           {weekdayToLabel(session.weekday)}
           {session.completedAt !== null ? ` | ${formatDateTime(session.completedAt)}` : ""}

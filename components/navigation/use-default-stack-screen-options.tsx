@@ -21,7 +21,6 @@ export function useDefaultStackScreenOptions(): NativeStackNavigationOptions {
     const tintColor = isDark ? "rgb(243 244 246)" : "rgb(17 24 39)";
 
     const options: NativeStackNavigationOptions = {
-      headerTitle: "",
       headerTitleAlign: "left",
       headerStyle: {
         backgroundColor,
@@ -38,6 +37,7 @@ export function useDefaultStackScreenOptions(): NativeStackNavigationOptions {
         />
       ),
       headerTintColor: tintColor,
+      headerBackButtonDisplayMode: "minimal",
       headerTitleStyle: { color: tintColor, fontWeight: "600" },
       headerShadowVisible: false,
       headerRight: () => (

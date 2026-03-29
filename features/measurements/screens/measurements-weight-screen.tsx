@@ -1,5 +1,4 @@
 import { Text, View } from "react-native";
-
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { MeasurementsSwitch } from "@/features/measurements/components/measurements-switch";
 import { WeightEntryForm } from "@/features/measurements/components/weight-entry-form";
@@ -9,8 +8,7 @@ import { WeightTrendCard } from "@/features/measurements/components/weight-trend
 export function MeasurementsWeightScreen() {
   return (
     <ScreenWrapper>
-      <View className="gap-6 py-4">
-        <Text className="text-2xl font-semibold text-text-primary">Measurements</Text>
+      <View className="gap-5 pb-4 pt-1">
         <MeasurementsSwitch />
         <WeightEntryForm />
         <WeightEntryPreview />

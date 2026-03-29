@@ -8,6 +8,7 @@ import { SplitSetTargetSchema } from "@/features/splits/schemas/split-schema";
 
 export type SetTargetFieldError = {
   reps?: string;
+  weightKg?: string;
   restSec?: string;
 };
 
@@ -28,6 +29,9 @@ export function validateSetTarget(setTarget: BuilderSetTarget): SetTargetFieldEr
     if (issue.path[0] === "reps") {
       errors.reps = issue.message;
     }
+    if (issue.path[0] === "weightKg") {
+      errors.weightKg = issue.message;
+    }
     if (issue.path[0] === "restSec") {
       errors.restSec = issue.message;
     }
@@ -41,6 +45,7 @@ export function validateExerciseSetTargets(exercise: BuilderExercise): ExerciseV
   const invalidFieldCount = errors.reduce((count, error) => {
     let nextCount = count;
     if (error.reps) nextCount += 1;
+    if (error.weightKg) nextCount += 1;
     if (error.restSec) nextCount += 1;
     return nextCount;
   }, 0);

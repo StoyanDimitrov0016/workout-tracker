@@ -2,13 +2,14 @@
 
 type SetTargetInput = {
   reps: string;
+  weightKg: string;
   restSec: string;
 };
 
 interface ExerciseRowProps {
   name: string;
   setTargets: SetTargetInput[];
-  errors?: Array<{ reps?: string; restSec?: string }>;
+  errors?: Array<{ reps?: string; weightKg?: string; restSec?: string }>;
   invalidFieldCount?: number;
   isExpanded: boolean;
   onToggleExpanded: () => void;
@@ -16,7 +17,7 @@ interface ExerciseRowProps {
   onRemove: () => void;
 }
 
-const DEFAULT_SET_TARGET: SetTargetInput = { reps: "", restSec: "120" };
+const DEFAULT_SET_TARGET: SetTargetInput = { reps: "", weightKg: "0", restSec: "120" };
 
 function ensureSetTargets(setTargets: SetTargetInput[]) {
   if (setTargets.length > 0) return setTargets;
@@ -37,6 +38,10 @@ function buildSummary(setTargets: SetTargetInput[]) {
     setTargets.map((set) => set.reps),
     ""
   );
+  const weightSummary = formatUnitSummary(
+    setTargets.map((set) => set.weightKg),
+    "kg"
+  );
   const restSummary = formatUnitSummary(
     setTargets.map((set) => set.restSec),
     "s"
@@ -45,6 +50,10 @@ function buildSummary(setTargets: SetTargetInput[]) {
 
   if (repsSummary) {
     parts.push(`reps ${repsSummary}`);
+  }
+
+  if (weightSummary) {
+    parts.push(`weight ${weightSummary}`);
   }
 
   if (restSummary) {
@@ -133,7 +142,25 @@ export function ExerciseRow({
                     placeholderTextColor="#9ca3af"
                   />
                   {errors?.[index]?.reps ? (
-                    <Text className="mt-1 text-[11px] text-status-error">{errors[index]?.reps}</Text>
+                    <Text className="mt-1 text-[11px] text-status-error">
+                      {errors[index]?.reps}
+                    </Text>
+                  ) : null}
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs text-text-tertiary">Weight (kg)</Text>
+                  <TextInput
+                    value={set.weightKg}
+                    onChangeText={(text) => updateSet(index, { weightKg: text })}
+                    keyboardType="decimal-pad"
+                    className="rounded-lg border border-border px-2 py-2 text-text-primary"
+                    placeholder="0"
+                    placeholderTextColor="#9ca3af"
+                  />
+                  {errors?.[index]?.weightKg ? (
+                    <Text className="mt-1 text-[11px] text-status-error">
+                      {errors[index]?.weightKg}
+                    </Text>
                   ) : null}
                 </View>
                 <View className="flex-1">

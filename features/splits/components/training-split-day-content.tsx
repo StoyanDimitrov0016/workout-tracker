@@ -11,7 +11,7 @@ type TrainingSplitDayContentProps = {
         exercises: Array<{
           exerciseId: string;
           exerciseName: string;
-          setTargets: Array<{ reps: number; restSec: number }>;
+          setTargets: Array<{ reps: number; weightKg: number; restSec: number }>;
         }>;
       }
     | undefined;
@@ -34,7 +34,9 @@ export function TrainingSplitDayContent({ weekday, day }: TrainingSplitDayConten
               key={`${exercise.exerciseId}-${index}`}
               className="rounded-xl border border-border bg-card p-4"
             >
-              <Text className="text-base font-semibold text-text-primary">{exercise.exerciseName}</Text>
+              <Text className="text-base font-semibold text-text-primary">
+                {exercise.exerciseName}
+              </Text>
               <Text className="text-sm text-text-tertiary">
                 {formatSetTargetsSummary(exercise.setTargets)}
               </Text>

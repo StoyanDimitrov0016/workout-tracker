@@ -1,4 +1,3 @@
-import { Stack } from "expo-router";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
@@ -12,13 +11,14 @@ import {
 export { RouteErrorBoundary as ErrorBoundary };
 
 export default function WorkoutSessionDetailScreen() {
-  const sessionId = useValidatedLocalSearchParam("sessionId", ConvexIdParamSchema<"workoutSessions">());
+  const sessionId = useValidatedLocalSearchParam(
+    "sessionId",
+    ConvexIdParamSchema<"workoutSessions">()
+  );
   const session = statisticsResource.useSessionDetail(sessionId);
 
   return (
     <ScreenWrapper>
-      <Stack.Screen options={{ title: "Workout", headerTitle: "Workout" }} />
-
       {sessionId === null ? (
         <ScreenStateMessage title="Invalid session." />
       ) : session === undefined ? (

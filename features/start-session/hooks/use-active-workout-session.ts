@@ -153,10 +153,10 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
     const nextSet = nextTarget
       ? {
           reps: String(nextTarget.reps),
-          weightKg: "",
+          weightKg: String(nextTarget.weightKg),
           restSec: String(nextTarget.restSec),
         }
-      : { reps: "", weightKg: "", restSec: "" };
+      : { reps: "", weightKg: "0", restSec: "" };
 
     setEntries((previous) => ({
       ...previous,

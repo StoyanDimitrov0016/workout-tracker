@@ -1,4 +1,4 @@
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
@@ -17,8 +17,6 @@ export default function WorkoutHistoryScreen() {
 
   return (
     <ScreenWrapper>
-      <Stack.Screen options={{ title: "Workout history", headerTitle: "Workout history" }} />
-
       {history.status === "LoadingFirstPage" ? (
         <ScreenStateMessage title="Loading..." showSpinner />
       ) : history.results.length === 0 ? (
