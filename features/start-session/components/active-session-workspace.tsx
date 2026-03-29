@@ -36,10 +36,6 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
       {errorMessage ? <InlineErrorBanner message={errorMessage} /> : null}
 
       <View className="gap-1">
-        <Text className="text-sm text-text-tertiary">Active session</Text>
-        <Text className="text-2xl font-semibold text-text-primary">
-          {session.title.trim() || "Training"}
-        </Text>
         <Text className="text-sm text-text-secondary">
           {weekdayToLabel(session.weekday)} | Started {formatDateTime(session.startedAt)}
         </Text>

@@ -42,16 +42,6 @@ export function PlannedSessionDayPicker({
     <View className="gap-6">
       {errorMessage ? <InlineErrorBanner message={errorMessage} /> : null}
 
-      <View className="gap-1">
-        <Text className="text-sm text-text-tertiary">Choose planned day</Text>
-        <Text className="text-2xl font-semibold text-text-primary">
-          {selectedDay?.title?.trim() || "Training"}
-        </Text>
-        <Text className="text-sm text-text-secondary">
-          Start the exact training day you want instead of only the nearest one.
-        </Text>
-      </View>
-
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-4">
         <View className="flex-row gap-3 px-4">
           {days.map((day) => {
