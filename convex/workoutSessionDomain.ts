@@ -11,10 +11,11 @@ function padDatePart(value: number) {
 }
 
 function buildPerformedSets(targetSets: SessionExercise["targetSets"]) {
-  const safeTargetSets = targetSets.length > 0 ? targetSets : [{ reps: 0, restSec: 120 }];
+  const safeTargetSets =
+    targetSets.length > 0 ? targetSets : [{ reps: 0, weightKg: 0, restSec: 120 }];
   return safeTargetSets.map((target) => ({
     reps: target.reps,
-    weightKg: null,
+    weightKg: target.weightKg ?? null,
     restSec: target.restSec,
   }));
 }
@@ -245,7 +246,7 @@ export function buildNextPerformedSet(exercise: SessionExercise) {
   if (nextTarget) {
     return {
       reps: nextTarget.reps,
-      weightKg: null,
+      weightKg: nextTarget.weightKg ?? null,
       restSec: nextTarget.restSec,
     };
   }

@@ -41,7 +41,7 @@ export function SplitBuilderStepTwo({
       <SplitBuilderStepHeader
         stepLabel="Step 2 of 2"
         title="Configure details"
-        description="Set the sets, reps, and rest for each exercise."
+        description="Set the sets, reps, weight, and rest for each exercise."
       />
       {saveErrorMessage ? (
         <View className="rounded-2xl border border-status-error/20 bg-status-error/10 p-4">
@@ -51,7 +51,8 @@ export function SplitBuilderStepTwo({
       {totalInvalidFields > 0 ? (
         <View className="rounded-2xl border border-status-error/20 bg-status-error/10 p-4">
           <Text className="text-sm text-status-error">
-            Fix {totalInvalidFields} invalid field{totalInvalidFields === 1 ? "" : "s"} before saving.
+            Fix {totalInvalidFields} invalid field{totalInvalidFields === 1 ? "" : "s"} before
+            saving.
           </Text>
         </View>
       ) : null}

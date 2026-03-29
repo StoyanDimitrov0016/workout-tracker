@@ -5,7 +5,7 @@ import { NumberMapper } from "@/utils/form/number-mapper";
 
 interface SessionExerciseCardProps {
   name: string;
-  setTargets: Array<{ reps: number; restSec: number }>;
+  setTargets: Array<{ reps: number; weightKg: number; restSec: number }>;
   sets: Array<{ reps: string; weightKg: string; restSec: string }>;
   isDone: boolean;
   onToggleDone: () => void;
@@ -23,7 +23,10 @@ export function SessionExerciseCard({
   onChangeSet,
 }: SessionExerciseCardProps) {
   const totalReps = sets.reduce((sum, set) => sum + Number.parseInt(set.reps || "0", 10), 0);
-  const totalWeight = sets.reduce((sum, set) => sum + NumberMapper.toNumber(set.weightKg || "0"), 0);
+  const totalWeight = sets.reduce(
+    (sum, set) => sum + NumberMapper.toNumber(set.weightKg || "0"),
+    0
+  );
   const averageWeight = sets.length > 0 ? totalWeight / sets.length : 0;
   const targetSummary = formatSetTargetsSummary(setTargets);
 
@@ -73,7 +76,7 @@ export function SessionExerciseCard({
                         onChangeText={(text) => onChangeSet(index, { ...set, weightKg: text })}
                         keyboardType="decimal-pad"
                         className="rounded-lg border border-border px-3 py-2 text-text-primary"
-                        placeholder="kg"
+                        placeholder={target ? String(target.weightKg) : "0"}
                         placeholderTextColor="#9ca3af"
                       />
                     </View>

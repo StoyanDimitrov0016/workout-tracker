@@ -2,6 +2,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 
 export type SplitSetTargetInput = {
   reps: number;
+  weightKg: number;
   restSec: number;
 };
 
@@ -29,6 +30,7 @@ export type SplitFormValues = {
 
 export type BuilderSetTarget = {
   reps: string;
+  weightKg: string;
   restSec: string;
 };
 

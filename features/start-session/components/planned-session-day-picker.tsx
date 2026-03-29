@@ -10,7 +10,7 @@ type PlannedSessionDay = {
   exercises: Array<{
     exerciseId: string;
     exerciseName: string;
-    setTargets: Array<{ reps: number; restSec: number }>;
+    setTargets: Array<{ reps: number; weightKg: number; restSec: number }>;
   }>;
   isRecommended: boolean;
   status: "available" | "completed_today";
@@ -56,7 +56,12 @@ export function PlannedSessionDayPicker({
         <View className="flex-row gap-3 px-4">
           {days.map((day) => {
             const isSelected = day.weekday === selectedWeekday;
-            const badge = day.status === "completed_today" ? "Done today" : day.isRecommended ? "Recommended" : null;
+            const badge =
+              day.status === "completed_today"
+                ? "Done today"
+                : day.isRecommended
+                  ? "Recommended"
+                  : null;
 
             return (
               <Pressable
@@ -126,7 +131,7 @@ export function PlannedSessionDayPicker({
       {selectedDay.status === "completed_today" && selectedDay.sessionId ? (
         <Pressable
           onPress={() => onOpenCompleted(selectedDay.sessionId!)}
-          className="rounded-xl py-3 bg-primary"
+          className="rounded-xl bg-primary py-3"
         >
           <Text className="text-center font-semibold text-white">View summary</Text>
         </Pressable>

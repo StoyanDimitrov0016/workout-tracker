@@ -13,6 +13,9 @@ export const SplitSetTargetSchema = z.object({
     .number({ error: "Use a whole number above 0." })
     .int({ error: "Use a whole number above 0." })
     .positive({ error: "Use a whole number above 0." }),
+  weightKg: z
+    .number({ error: "Use a weight of 0 kg or more." })
+    .min(0, { error: "Use a weight of 0 kg or more." }),
   restSec: z
     .number({ error: "Use seconds above 0." })
     .int({ error: "Use seconds above 0." })
