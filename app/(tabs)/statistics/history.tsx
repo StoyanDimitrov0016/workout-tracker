@@ -17,8 +17,17 @@ export default function WorkoutHistoryScreen() {
 
   return (
     <ScreenWrapper>
-      <Stack.Screen options={{ title: "Workout history", headerTitle: "Workout history" }} />
-
+      <Stack.Screen
+        options={{
+          title: "Workout history",
+          headerTitle: "Workout history",
+          headerLeft: () => (
+            <Pressable onPress={() => router.replace("/statistics")} className="px-1 py-1">
+              <Text className="text-sm font-semibold text-primary">Back</Text>
+            </Pressable>
+          ),
+        }}
+      />
       {history.status === "LoadingFirstPage" ? (
         <ScreenStateMessage title="Loading..." showSpinner />
       ) : history.results.length === 0 ? (
