@@ -28,7 +28,7 @@ export function MeasurementsSwitch() {
   const activeKey = getActiveKey(segments);
 
   return (
-    <View className="flex-row rounded-2xl border border-border bg-card p-1">
+    <View className="flex-row rounded-2xl border border-border bg-card/70 p-1">
       {tabs.map((tab) => {
         const isActive = activeKey === tab.key;
 
@@ -36,11 +36,13 @@ export function MeasurementsSwitch() {
           <Pressable
             key={tab.key}
             onPress={() => router.replace(tab.href)}
-            className={`flex-1 rounded-xl px-3 py-2 ${isActive ? "bg-primary" : "bg-transparent"}`}
+            className={`flex-1 rounded-xl border px-3 py-2.5 ${
+              isActive ? "border-primary bg-transparent" : "border-transparent bg-transparent"
+            }`}
           >
             <Text
               className={`text-center text-sm font-semibold ${
-                isActive ? "text-white" : "text-text-secondary"
+                isActive ? "text-text-primary" : "text-text-secondary"
               }`}
             >
               {tab.label}

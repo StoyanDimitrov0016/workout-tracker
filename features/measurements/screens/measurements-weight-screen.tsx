@@ -8,7 +8,7 @@ import { WeightTrendCard } from "@/features/measurements/components/weight-trend
 export function MeasurementsWeightScreen() {
   return (
     <ScreenWrapper>
-      <View className="gap-6 py-4">
+      <View className="gap-5 pb-4 pt-1">
         <MeasurementsSwitch />
         <WeightEntryForm />
         <WeightEntryPreview />
