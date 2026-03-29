@@ -23,7 +23,7 @@ interface SplitBuilderProps {
   onSaved: () => void;
 }
 
-const DEFAULT_SET_TARGET: BuilderSetTarget = { reps: "", restSec: "120" };
+const DEFAULT_SET_TARGET: BuilderSetTarget = { reps: "", weightKg: "0", restSec: "120" };
 const DEFAULT_SET_COUNT = 3;
 const DAY_TITLE_PLACEHOLDERS = [
   "Upper A",
@@ -325,7 +325,10 @@ export function SplitBuilder({ initialSplit, submitLabel, onSaved }: SplitBuilde
       </ScrollView>
 
       <View className="flex-row gap-2 border-t border-border bg-background pt-4">
-        <Pressable onPress={() => setStepAndReset(1)} className="flex-1 rounded-xl border border-border px-3 py-3">
+        <Pressable
+          onPress={() => setStepAndReset(1)}
+          className="flex-1 rounded-xl border border-border px-3 py-3"
+        >
           <Text className="text-center font-semibold text-text-primary">Back</Text>
         </Pressable>
         <Pressable

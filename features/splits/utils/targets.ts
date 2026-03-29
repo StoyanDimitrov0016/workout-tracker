@@ -1,5 +1,6 @@
-﻿export type SetTarget = {
+export type SetTarget = {
   reps: number;
+  weightKg: number;
   restSec: number;
 };
 
@@ -37,6 +38,10 @@ export function formatSetTargetsSummary(setTargets: SetTarget[]) {
 
   const parts = [`${setTargets.length} sets`];
   const repsSummary = summarizeValues(setTargets.map((set) => set.reps));
+  const weightSummary = formatUnitSummary(
+    setTargets.map((set) => set.weightKg),
+    "kg"
+  );
   const restSummary = formatUnitSummary(
     setTargets.map((set) => set.restSec),
     "s"
@@ -44,6 +49,10 @@ export function formatSetTargetsSummary(setTargets: SetTarget[]) {
 
   if (repsSummary) {
     parts.push(`reps ${repsSummary}`);
+  }
+
+  if (weightSummary) {
+    parts.push(`weight ${weightSummary}`);
   }
 
   if (restSummary) {
