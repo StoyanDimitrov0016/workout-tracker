@@ -52,8 +52,7 @@ export function TrainingSplitScreen() {
 
       {split ? (
         <View className="gap-4">
-          <View className="gap-1">
-            <Text className="text-sm text-text-tertiary">Split name</Text>
+          <View>
             <Text className="text-2xl font-semibold text-text-primary">{split.name}</Text>
           </View>
 

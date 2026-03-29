@@ -1,5 +1,3 @@
-import { Stack, useRouter } from "expo-router";
-import { Pressable, Text } from "react-native";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
@@ -13,24 +11,14 @@ import {
 export { RouteErrorBoundary as ErrorBoundary };
 
 export default function WorkoutSessionDetailScreen() {
-  const router = useRouter();
-  const sessionId = useValidatedLocalSearchParam("sessionId", ConvexIdParamSchema<"workoutSessions">());
+  const sessionId = useValidatedLocalSearchParam(
+    "sessionId",
+    ConvexIdParamSchema<"workoutSessions">()
+  );
   const session = statisticsResource.useSessionDetail(sessionId);
 
   return (
     <ScreenWrapper>
-      <Stack.Screen
-        options={{
-          title: "Statistics",
-          headerTitle: "Statistics",
-          headerLeft: () => (
-            <Pressable onPress={() => router.replace("/statistics")} className="px-1 py-1">
-              <Text className="text-sm font-semibold text-primary">Back</Text>
-            </Pressable>
-          ),
-        }}
-      />
-
       {sessionId === null ? (
         <ScreenStateMessage title="Invalid session." />
       ) : session === undefined ? (

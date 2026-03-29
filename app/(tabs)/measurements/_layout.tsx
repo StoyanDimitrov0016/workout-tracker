@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 
+import { getRootTabScreenOptions } from "@/components/navigation/get-root-tab-screen-options";
 import { useDefaultStackScreenOptions } from "@/components/navigation/use-default-stack-screen-options";
 
 export default function MeasurementsStackLayout() {
@@ -7,9 +8,9 @@ export default function MeasurementsStackLayout() {
 
   return (
     <Stack screenOptions={screenOptions}>
-      <Stack.Screen name="index" options={{ title: "Measurements" }} />
-      <Stack.Screen name="weight" options={{ title: "Measurements" }} />
-      <Stack.Screen name="circumferences" options={{ title: "Measurements" }} />
+      <Stack.Screen name="index" options={getRootTabScreenOptions()} />
+      <Stack.Screen name="weight" options={getRootTabScreenOptions()} />
+      <Stack.Screen name="circumferences" options={getRootTabScreenOptions()} />
     </Stack>
   );
 }

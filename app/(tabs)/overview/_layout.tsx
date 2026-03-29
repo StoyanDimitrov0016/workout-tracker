@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 
+import { getRootTabScreenOptions } from "@/components/navigation/get-root-tab-screen-options";
 import { useDefaultStackScreenOptions } from "@/components/navigation/use-default-stack-screen-options";
 
 export default function OverviewStackLayout() {
@@ -7,7 +8,7 @@ export default function OverviewStackLayout() {
 
   return (
     <Stack screenOptions={screenOptions}>
-      <Stack.Screen name="index" options={{ title: "Overview" }} />
+      <Stack.Screen name="index" options={getRootTabScreenOptions()} />
     </Stack>
   );
 }

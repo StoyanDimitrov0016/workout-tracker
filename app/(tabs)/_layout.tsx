@@ -72,7 +72,7 @@ export default function TabLayout() {
               {...props}
               onPress={(event) => {
                 if (props.accessibilityState?.selected) {
-                  router.replace("/statistics");
+                  router.dismissTo("/statistics");
                   return;
                 }
 

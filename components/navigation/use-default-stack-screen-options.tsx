@@ -37,6 +37,7 @@ export function useDefaultStackScreenOptions(): NativeStackNavigationOptions {
         />
       ),
       headerTintColor: tintColor,
+      headerBackButtonDisplayMode: "minimal",
       headerTitleStyle: { color: tintColor, fontWeight: "600" },
       headerShadowVisible: false,
       headerRight: () => (
