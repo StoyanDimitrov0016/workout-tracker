@@ -52,6 +52,7 @@ export default defineSchema({
             setTargets: v.array(
               v.object({
                 reps: v.number(),
+                weightKg: v.number(),
                 restSec: v.number(),
               })
             ),
@@ -77,6 +78,7 @@ export default defineSchema({
         targetSets: v.array(
           v.object({
             reps: v.number(),
+            weightKg: v.number(),
             restSec: v.number(),
           })
         ),

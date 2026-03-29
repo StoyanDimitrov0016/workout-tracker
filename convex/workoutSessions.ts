@@ -34,6 +34,7 @@ const performedSetSchema = v.object({
 
 const targetSetSchema = v.object({
   reps: v.number(),
+  weightKg: v.number(),
   restSec: v.number(),
 });
 
@@ -163,7 +164,10 @@ export const getPlannedDayOptions = query({
           title: day.title,
           exercises: day.exercises,
           isRecommended: upcomingDay?.weekday === day.weekday,
-          status: existingSession?.status === "completed" ? ("completed_today" as const) : ("available" as const),
+          status:
+            existingSession?.status === "completed"
+              ? ("completed_today" as const)
+              : ("available" as const),
           sessionId: existingSession?._id ?? null,
         };
       })
@@ -182,7 +186,9 @@ export const getStatisticsOverview = query({
     const userToken = await requireAuth(ctx);
     const rawSessions = await ctx.db
       .query("workoutSessions")
-      .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userToken", userToken).eq("status", "completed")
+      )
       .order("desc")
       .take(MAX_STATISTICS_OVERVIEW_SESSIONS + 1);
 
@@ -287,7 +293,9 @@ export const listCompletedPaginated = query({
     const userToken = await requireAuth(ctx);
     const result = await ctx.db
       .query("workoutSessions")
-      .withIndex("by_user_and_status", (q) => q.eq("userToken", userToken).eq("status", "completed"))
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userToken", userToken).eq("status", "completed")
+      )
       .order("desc")
       .paginate(args.paginationOpts);
 
