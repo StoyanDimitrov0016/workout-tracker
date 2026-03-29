@@ -16,8 +16,8 @@ export default function SignIn() {
 
   return (
     <View className="flex-1 bg-background px-6 pt-8">
-      <View className="absolute -left-16 -top-24 h-56 w-56 rounded-full bg-primary/10" />
-      <View className="absolute -bottom-32 -right-20 h-72 w-72 rounded-full bg-secondary/10" />
+      <View className="absolute -right-20 -top-28 h-64 w-64 rounded-full bg-primary/10" />
+      <View className="absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-secondary/10" />
 
       <View className="relative z-10 flex-1">
         <AuthTabs active="sign-in" />
