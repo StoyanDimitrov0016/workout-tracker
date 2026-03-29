@@ -23,9 +23,6 @@ We will keep updating this file as new ideas appear and priorities change.
 - Better loading states
   Replace layout-level spinners with proper loading skeletons where it improves perceived performance.
 
-- Use the app header better
-  Add useful titles or context in the header instead of leaving it mostly empty apart from the user avatar.
-
 ## Next
 
 - Exercise substitutions
@@ -73,3 +70,12 @@ We will keep updating this file as new ideas appear and priorities change.
 
 - Goals and targets
   Add user goals such as bulk, cut, power, or endurance and connect them to progress tracking.
+
+## Done
+
+- Navigation cleanup
+  - Simplified the shared app header so it stays clean and does not compete with actual screen actions.
+  - Moved the Training Split edit action out of the shared header and into the Training Split tab itself.
+  - Removed redundant heading and subheading text from the main tab screens to reclaim vertical space.
+  - Added an explicit back arrow in the nested Statistics workout screens so the user can return directly to the Statistics feed.
+  - Softened the inner Measurements tab switch by using an outlined active state, keeping the primary focus on creating or updating entries.
