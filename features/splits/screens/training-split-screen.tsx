@@ -1,7 +1,6 @@
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { AppHeaderActions } from "@/components/app-header-actions";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { DayCard } from "@/features/splits/components/day-card";
@@ -29,31 +28,13 @@ export function TrainingSplitScreen() {
 
   return (
     <ScreenWrapper>
-      <Stack.Screen
-        options={{
-          headerRight: split
-            ? () => (
-                <View style={{ paddingRight: 12, paddingVertical: 6 }}>
-                  <View className="flex-row items-center gap-3">
-                    <Pressable onPress={() => router.push("/training-split/edit")}>
-                      <Text className="text-sm font-semibold text-primary">Edit</Text>
-                    </Pressable>
-                    <AppHeaderActions onPress={() => router.push("/(modals)/account")} />
-                  </View>
-                </View>
-              )
-            : () => (
-                <View style={{ paddingRight: 12, paddingVertical: 6 }}>
-                  <AppHeaderActions onPress={() => router.push("/(modals)/account")} />
-                </View>
-              ),
-        }}
-      />
-
       {split ? (
         <View className="gap-4">
-          <View>
+          <View className="flex-row items-center justify-between gap-3">
             <Text className="text-2xl font-semibold text-text-primary">{split.name}</Text>
+            <Pressable onPress={() => router.push("/training-split/edit")}>
+              <Text className="text-sm font-semibold text-primary">Edit</Text>
+            </Pressable>
           </View>
 
           <View className="gap-3">
