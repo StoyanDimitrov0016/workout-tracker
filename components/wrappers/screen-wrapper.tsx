@@ -1,7 +1,6 @@
-import { useHeaderHeight } from "@react-navigation/elements";
 import { ReactNode } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface ScreenWrapperProps {
   children: ReactNode;
@@ -9,11 +8,8 @@ interface ScreenWrapperProps {
 }
 
 export function ScreenWrapper({ children, scroll = true }: ScreenWrapperProps) {
-  const headerHeight = useHeaderHeight();
-  const insets = useSafeAreaInsets();
-  const effectiveHeaderHeight = headerHeight > 0 ? headerHeight : 56 + insets.top;
   const contentPadding = {
-    paddingTop: effectiveHeaderHeight + 12,
+    paddingTop: 12,
     paddingBottom: 24,
     paddingHorizontal: 16,
   };
