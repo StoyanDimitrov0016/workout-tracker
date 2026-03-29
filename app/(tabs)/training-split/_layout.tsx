@@ -5,5 +5,9 @@ import { useDefaultStackScreenOptions } from "@/components/navigation/use-defaul
 export default function TrainingSplitStackLayout() {
   const screenOptions = useDefaultStackScreenOptions();
 
-  return <Stack screenOptions={screenOptions} />;
+  return (
+    <Stack screenOptions={screenOptions}>
+      <Stack.Screen name="index" options={{ title: "Training split" }} />
+    </Stack>
+  );
 }
