@@ -1,10 +1,8 @@
 import { Text, View } from "react-native";
 
-import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import { formatDateTime } from "@/utils/format/date-time";
 import { formatWeightKg } from "@/utils/format/weight";
 
-const TREND_LIMIT = 14;
 const CHART_HEIGHT = 120;
 
 function formatDelta(deltaKg: number | null) {
@@ -13,18 +11,21 @@ function formatDelta(deltaKg: number | null) {
   return `${prefix}${formatWeightKg(deltaKg)} kg`;
 }
 
-export function WeightTrendCard() {
-  const trend = measurementsResource.weight.useTrend(TREND_LIMIT);
+type WeightTrendCardProps = {
+  trend: {
+    deltaKg: number | null;
+    entries: Array<{
+      _id: string;
+      createdAt: number;
+      weightKg: number;
+    }>;
+    latestWeightKg: number | null;
+    maxWeightKg: number | null;
+    minWeightKg: number | null;
+  };
+};
 
-  if (trend === undefined) {
-    return (
-      <View className="gap-3 rounded-2xl border border-border bg-surface p-4">
-        <Text className="text-lg font-semibold text-text-primary">Weight trend</Text>
-        <Text className="text-sm text-text-secondary">Loading trend...</Text>
-      </View>
-    );
-  }
-
+export function WeightTrendCard({ trend }: WeightTrendCardProps) {
   if (trend.entries.length === 0) {
     return (
       <View className="gap-3 rounded-2xl border border-border bg-surface p-4">
@@ -82,10 +83,7 @@ export function WeightTrendCard() {
 
             return (
               <View key={entry._id} className="flex-1 items-center gap-2">
-                <View
-                  className="w-full rounded-full bg-primary/80"
-                  style={{ height }}
-                />
+                <View className="w-full rounded-full bg-primary/80" style={{ height }} />
                 <Text className="text-[10px] text-text-tertiary">
                   {new Date(entry.createdAt).toLocaleDateString([], {
                     month: "numeric",

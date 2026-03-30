@@ -1,7 +1,7 @@
 import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+import { SplitBuilderSkeleton } from "@/components/feedback/loading-skeleton";
 import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
-import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { SplitBuilder } from "@/features/splits/components/split-builder";
 import { splitResource } from "@/features/splits/data/split-resource";
@@ -14,8 +14,8 @@ export default function TrainingSplitEdit() {
 
   if (split === undefined) {
     return (
-      <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." showSpinner />
+      <ScreenWrapper scroll={false}>
+        <SplitBuilderSkeleton />
       </ScreenWrapper>
     );
   }

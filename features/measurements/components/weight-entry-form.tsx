@@ -12,10 +12,12 @@ import {
 import { WeightEntrySchema } from "@/features/measurements/schemas/weight-entry-schema";
 import { clampWeight, formatWeightKg } from "@/features/measurements/utils/weight";
 
-export function WeightEntryForm() {
+type WeightEntryFormProps = {
+  latestWeightKg: number | null;
+};
+
+export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
   const addWeightEntry = measurementsResource.weight.useCreate();
-  const recentEntries = measurementsResource.weight.useRecent(1);
-  const latestWeightKg = recentEntries?.[0]?.weightKg ?? null;
 
   const {
     control,

@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { StatisticsScreenSkeleton } from "@/components/feedback/loading-skeleton";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { ExerciseStatCard } from "@/features/statistics/components/exercise-stat-card";
@@ -16,7 +17,7 @@ export function StatisticsScreen() {
   if (statistics === undefined) {
     return (
       <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." showSpinner />
+        <StatisticsScreenSkeleton />
       </ScreenWrapper>
     );
   }

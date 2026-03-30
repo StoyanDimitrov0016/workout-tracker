@@ -1,3 +1,4 @@
+import { WorkoutSessionDetailSkeleton } from "@/components/feedback/loading-skeleton";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
@@ -22,7 +23,7 @@ export default function WorkoutSessionDetailScreen() {
       {sessionId === null ? (
         <ScreenStateMessage title="Invalid session." />
       ) : session === undefined ? (
-        <ScreenStateMessage title="Loading..." showSpinner />
+        <WorkoutSessionDetailSkeleton />
       ) : session === null ? (
         <ScreenStateMessage title="Workout not found." />
       ) : (

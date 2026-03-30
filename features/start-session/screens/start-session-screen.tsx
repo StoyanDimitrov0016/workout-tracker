@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 
-import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
+import { StartSessionScreenSkeleton } from "@/components/feedback/loading-skeleton";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { ActiveSessionWorkspace } from "@/features/start-session/components/active-session-workspace";
 import { PlannedSessionDayPicker } from "@/features/start-session/components/planned-session-day-picker";
@@ -43,7 +43,7 @@ export function StartSessionScreen() {
   if (activeSession === undefined || plannedDayOptions === undefined) {
     return (
       <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." showSpinner />
+        <StartSessionScreenSkeleton />
       </ScreenWrapper>
     );
   }
@@ -104,7 +104,7 @@ export function StartSessionScreen() {
           }}
         />
       ) : (
-        <ScreenStateMessage title="Loading..." showSpinner />
+        <StartSessionScreenSkeleton />
       )}
     </ScreenWrapper>
   );
