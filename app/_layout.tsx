@@ -2,9 +2,10 @@ import "react-native-reanimated";
 import "../global.css";
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import * as SplashScreen from "expo-splash-screen";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
+import { useEffect } from "react";
 
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
@@ -12,10 +13,11 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 
-import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export const unstable_settings = { anchor: "(tabs)" };
+
+void SplashScreen.preventAutoHideAsync().catch(() => null);
 
 const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
   unsavedChangesWarning: false,
@@ -24,16 +26,16 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
 function RootNavigator() {
   const { isLoaded, isSignedIn } = useAuth();
 
+  useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    void SplashScreen.hideAsync();
+  }, [isLoaded]);
+
   if (!isLoaded) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background px-6">
-        <ScreenStateMessage
-          title="Loading account..."
-          description="Restoring your session."
-          showSpinner
-        />
-      </View>
-    );
+    return null;
   }
 
   return (

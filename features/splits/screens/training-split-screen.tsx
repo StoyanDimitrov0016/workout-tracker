@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
+import { TrainingSplitScreenSkeleton } from "@/components/feedback/loading-skeleton";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { DayCard } from "@/features/splits/components/day-card";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
@@ -17,7 +17,7 @@ export function TrainingSplitScreen() {
   if (split === undefined) {
     return (
       <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." showSpinner />
+        <TrainingSplitScreenSkeleton />
       </ScreenWrapper>
     );
   }
