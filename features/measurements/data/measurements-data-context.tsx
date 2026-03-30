@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext } from "react";
+import { createContext, type ReactNode, use } from "react";
 
 import { CIRCUMFERENCE_PREVIEW_LIMIT } from "@/features/measurements/constants/circumference";
 import {
@@ -13,7 +13,7 @@ type MeasurementsDataContextValue = {
   weightTrend: ReturnType<typeof measurementsResource.weight.useTrend>;
 };
 
-const MeasurementsDataContext = createContext<MeasurementsDataContextValue | null>(null);
+export const MeasurementsDataContext = createContext<MeasurementsDataContextValue | null>(null);
 
 export function MeasurementsDataProvider({ children }: { children: ReactNode }) {
   const recentWeightEntries = measurementsResource.weight.useRecent(WEIGHT_PREVIEW_LIMIT);
@@ -35,7 +35,7 @@ export function MeasurementsDataProvider({ children }: { children: ReactNode }) 
 }
 
 export function useMeasurementsData() {
-  const context = useContext(MeasurementsDataContext);
+  const context = use(MeasurementsDataContext);
 
   if (context === null) {
     throw new Error("useMeasurementsData must be used within MeasurementsDataProvider.");
