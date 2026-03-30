@@ -1,15 +1,22 @@
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import type { Id } from "@/convex/_generated/dataModel";
 import { WeightEntryItem } from "@/features/measurements/components/weight-entry-item";
-import { WEIGHT_PREVIEW_LIMIT } from "@/features/measurements/constants/weight";
 import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 
-export function WeightEntryPreview() {
-  const entries = measurementsResource.weight.useRecent(WEIGHT_PREVIEW_LIMIT);
+type WeightEntryPreviewProps = {
+  entries: Array<{
+    _creationTime: number;
+    _id: Id<"weights">;
+    weightKg: number;
+  }>;
+};
+
+export function WeightEntryPreview({ entries }: WeightEntryPreviewProps) {
   const removeLatest = measurementsResource.weight.useRemove();
   const [isRemoving, setIsRemoving] = useState(false);
-  const latestEntryId = useMemo(() => entries?.[0]?._id ?? null, [entries]);
+  const latestEntryId = useMemo(() => entries[0]?._id ?? null, [entries]);
   const canUndo = Boolean(latestEntryId) && !isRemoving;
 
   const handleUndo = async () => {
@@ -44,11 +51,10 @@ export function WeightEntryPreview() {
         Undo removes your most recent entry if you made a typo.
       </Text>
       <View className="gap-2">
-        {entries === undefined && <Text className="text-text-tertiary">Loading recent entries...</Text>}
-        {entries?.length === 0 && (
+        {entries.length === 0 && (
           <Text className="text-text-tertiary">No entries yet. Log your first weight above.</Text>
         )}
-        {entries?.map((entry) => (
+        {entries.map((entry) => (
           <WeightEntryItem
             key={entry._id}
             weightKg={entry.weightKg}

@@ -1,8 +1,6 @@
 import { useMemo } from "react";
 import { ScrollView, Text, View, useWindowDimensions } from "react-native";
 
-import { CIRCUMFERENCE_PREVIEW_LIMIT } from "@/features/measurements/constants/circumference";
-import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import { formatDateTime } from "@/utils/format/date-time";
 import { formatMeasurementValue } from "@/utils/format/measurement";
 
@@ -14,8 +12,26 @@ function formatPair(left: number, right: number) {
   return `${formatMeasurementValue(left)} / ${formatMeasurementValue(right)} cm`;
 }
 
-export function CircumferenceEntryCarousel() {
-  const entries = measurementsResource.circumferences.useRecent(CIRCUMFERENCE_PREVIEW_LIMIT);
+type CircumferenceEntryCarouselProps = {
+  entries: Array<{
+    _creationTime: number;
+    _id: string;
+    calfLeftCm: number;
+    calfRightCm: number;
+    chestCm: number;
+    forearmLeftCm: number;
+    forearmRightCm: number;
+    hipsCm: number;
+    neckCm: number;
+    thighLeftCm: number;
+    thighRightCm: number;
+    upperArmLeftCm: number;
+    upperArmRightCm: number;
+    waistCm: number;
+  }>;
+};
+
+export function CircumferenceEntryCarousel({ entries }: CircumferenceEntryCarouselProps) {
   const { width } = useWindowDimensions();
 
   const cardWidth = useMemo(() => Math.min(width - 48, 360), [width]);
@@ -31,15 +47,7 @@ export function CircumferenceEntryCarousel() {
         snapToInterval={snapInterval}
         contentContainerStyle={{ paddingHorizontal: 16 }}
       >
-        {entries === undefined && (
-          <View
-            className="rounded-2xl border border-border bg-card p-4"
-            style={{ width: cardWidth }}
-          >
-            <Text className="text-text-tertiary">Loading latest snapshots...</Text>
-          </View>
-        )}
-        {entries?.length === 0 && (
+        {entries.length === 0 && (
           <View
             className="rounded-2xl border border-border bg-card p-4"
             style={{ width: cardWidth }}
@@ -49,7 +57,7 @@ export function CircumferenceEntryCarousel() {
             </Text>
           </View>
         )}
-        {entries?.map((entry, index) => (
+        {entries.map((entry, index) => (
           <View
             key={entry._id}
             className="rounded-2xl border border-border bg-card p-4"
