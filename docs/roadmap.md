@@ -20,9 +20,6 @@ We will keep updating this file as new ideas appear and priorities change.
 - Per-set completion checkbox
   Add a very simple way to mark that a set is done without relying only on the entered numbers.
 
-- Better loading states
-  Replace layout-level spinners with proper loading skeletons where it improves perceived performance.
-
 ## Next
 
 - Exercise substitutions
@@ -72,6 +69,12 @@ We will keep updating this file as new ideas appear and priorities change.
   Add user goals such as bulk, cut, power, or endurance and connect them to progress tracking.
 
 ## Done
+
+- Loading states and measurements route stability
+  - Added layout skeletons across the app tabs instead of relying only on generic loading spinners.
+  - Fixed the repeated reload behavior when switching between Measurements sub-routes.
+  - Added a custom shared context for the Measurements flow so route changes reuse loaded data instead of refetching every time.
+  - It seems there is no direct `staleTime`-style alternative in Convex like there is in TanStack Query so this is the reason behind this Measurements data custom context.
 
 - Navigation cleanup
   - Simplified the shared app header so it stays clean and does not compete with actual screen actions.
