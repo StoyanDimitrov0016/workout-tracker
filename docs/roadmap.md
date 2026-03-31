@@ -8,12 +8,6 @@ We will keep updating this file as new ideas appear and priorities change.
 
 ## Now
 
-- Exercise notes and reminders
-  Add a short free-text note per exercise for machine setup, technique reminders, and small cues such as bench angle, chest support position, belt usage, or squat focus points.
-
-- Exercise reference URL
-  Allow one URL per exercise so the user can attach a technique reference, most likely a YouTube video or short.
-
 - Prefill session values from the last matching training day
   Prefill reps and weights based on the latest completed session for the same planned weekday, not just the latest time the exercise was performed globally.
 
@@ -69,6 +63,11 @@ We will keep updating this file as new ideas appear and priorities change.
   Add user goals such as bulk, cut, power, or endurance and connect them to progress tracking.
 
 ## Done
+
+- Exercise preferences in account settings
+  - Added a user-level Preferences area inside the account modal.
+  - Added an Exercise Preferences screen with one reference URL and one note per exercise per user, independent from any training split.
+  - Added placeholder disabled options for future unit and session-prefill preferences so the settings structure is already visible.
 
 - Loading states and measurements route stability
   - Added layout skeletons across the app tabs instead of relying only on generic loading spinners.
