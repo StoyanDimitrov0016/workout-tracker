@@ -1,184 +1,89 @@
-# Workout Tracker Finish Roadmap
+# Roadmap
 
-## Goal
+This file is the working backlog for the app.
 
-Turn the current app into a reliable gym companion that supports:
+It is based on real use after a training day, so some items are immediate UX fixes and some are bigger product ideas that should wait until the core flow is more stable.
 
-- planning a split
-- running a workout session in the gym
-- saving workout history
-- reviewing progress over time
-- staying safe to operate without surprise backend usage
+We will keep updating this file as new ideas appear and priorities change.
 
-## Current State
+## Now
 
-The app already has the core product surface:
+- Prefill session values from the last matching training day
+  Prefill reps and weights based on the latest completed session for the same planned weekday, not just the latest time the exercise was performed globally.
 
-- auth with Clerk
-- Convex backend
-- split creation and editing
-- weight logging
-- circumference logging
-- persisted workout sessions
-- workout completion summary
-- workout statistics
-- workout history with session detail
-- split target validation
-- overview driven by the split and same-weekday workout history
-- measurement save feedback
-- backend usage guards
-- feature-owned resource objects for statistics, sessions, measurements, and splits
-- shared route-param validation
-- thin tab route files with feature-owned screen components
+## Next
 
-The main remaining work is now maintenance, setup clarity, and selective polish.
+- Per-set completion persistence
+  Decide whether the per-set checkbox should stay local-only during the active session or be persisted so interrupted or partial sessions can restore it later.
 
-## Delivery Order
+- Exercise substitutions
+  Allow an exercise to have substitutions so the user can switch to a similar movement when equipment is busy or unavailable.
 
-### 1. Persist workout sessions
+- Prefill strategy preference
+  Let the user choose whether planned weights should be prefilled from the last time the exercise was done at all or from the last time it was done on the same planned training day. Add a small info explanation for the difference.
 
-Create a real session model in Convex and refactor `Start session` to save and resume workouts.
+- Increase exercise variety
+  Expand the exercise list substantially and review how muscle groups and exercise browsing should work.
 
-Status:
+- Search by muscle group
+  Add an easier way to browse or filter exercises by muscle group instead of only searching by name.
 
-- completed
+- Cardio support
+  Decide whether cardio should live as a dedicated session type or as a simplified exercise type with different inputs such as duration.
 
-Task file:
+## Later
 
-- [workout-session-persistence.md](./tasks/workout-session-persistence.md)
+- Unit preference in settings
+  Add a preferences/settings area from the user avatar entry point and allow switching between kg and lbs.
 
-### 2. Build workout history and statistics
+- Session duration estimate
+  Estimate training duration based on set count, reps, rest, and a simple execution/loading factor.
 
-Use saved workout sessions to power:
+- Supplement tracker
+  Track supplements such as protein, creatine, magnesium, vitamin D3, and K2 with scheduled intake.
 
-- recent sessions
-- exercise progression
-- total sets, reps, and volume
-- consistency by weekday
+- Training model redesign
+  Re-evaluate whether training days should be reusable blocks/modules that splits reference instead of storing all day configuration directly inside the split.
 
-Status:
+- Muscle group and exercise info
+  Add richer metadata, guidance, or info modals for muscle groups and exercises.
 
-- completed
+- Full styling audit
+  Do a complete visual and consistency pass across the app once the main flows are stable.
 
-### 3. Tighten split-builder validation
+## Future Ideas
 
-Prevent invalid split targets from being saved silently.
+- Mesocycles and periodization
+  Support deload weeks and longer-term program structure, either manually configured or suggested by the app.
 
-Status:
+- Weekly summary
+  Show a simple weekly summary of completed training.
 
-- completed
+- Goals and targets
+  Add user goals such as bulk, cut, power, or endurance and connect them to progress tracking.
 
-### 4. Improve overview, measurements, and core workflow UX
+## Done
 
-Included:
+- Exercise preferences in account settings
+  - Added a user-level Preferences area inside the account modal.
+  - Added a per-user, per-exercise preference mapping in Convex so each user can save one reference URL and one note for every exercise independently from any training split.
+  - Added an Exercise Preferences screen and editor flow to create, update, and clear those saved exercise preferences from account settings.
+  - Surfaced the saved reference URL and notes directly inside the active workout session flow so technique reminders and machine setup details are available when they matter.
+  - Added placeholder disabled options for future unit and session-prefill preferences so the settings structure is already visible.
 
-- overview insights
-- workout history detail access
-- workout completion summary
-- measurement save feedback
-- session guardrails
+- Local per-set completion checkbox
+  - Added a quick per-set checkbox inside the active workout session flow to help the user keep up with completed sets while training.
+  - Kept the checkbox purely presentational and local to the active screen; it is not persisted to the database and is not restored after the session is finished.
 
-Status:
+- Loading states and measurements route stability
+  - Added layout skeletons across the app tabs instead of relying only on generic loading spinners.
+  - Fixed the repeated reload behavior when switching between Measurements sub-routes.
+  - Added a custom shared context for the Measurements flow so route changes reuse loaded data instead of refetching every time.
+  - It seems there is no direct `staleTime`-style alternative in Convex like there is in TanStack Query so this is the reason behind this Measurements data custom context.
 
-- completed
-
-### 5. Cleanup route and feature structure
-
-Keep `app/` focused on routing and move actual screens/logic into feature modules.
-
-Status:
-
-- completed for tab index routes
-- partially complete for dynamic routes
-
-### 6. Add backend usage guards
-
-Protect the app from accidental high usage and oversized payloads by enforcing:
-
-- write-rate limits for daily measurement logging
-- caps on split size and workout-session set growth
-- hard query argument limits for user-facing history/trend endpoints
-
-Status:
-
-- completed
-
-### 7. Complete setup and project documentation
-
-Replace the starter README with real project docs covering:
-
-- required env vars
-- Clerk setup
-- Convex setup
-- seed flow
-- local development commands
-- how to share preview builds
-
-Status:
-
-- pending
-
-### 8. Remaining structural cleanup
-
-Focus only on high-value cleanup:
-
-- move dynamic route screens into feature-owned screens
-- centralize repeated loading/empty state UI where it pays off
-- add shared loading and error states for Convex-backed screens
-- make `ScreenWrapper` less prescriptive so list and fixed-footer screens do not fight a built-in `ScrollView`
-
-Status:
-
-- pending
-
-### 9. Session workflow improvements
-
-Keep only the meaningful product-facing improvement that still changes daily use:
-
-- allow choosing the planned split day to start instead of only current/nearest logic
-
-Status:
-
-- pending
-
-### 10. Future maintenance backlog
-
-Keep these as separate, deliberate follow-up branches instead of mixing them into feature work:
-
-- Expo SDK 55 migration
-- dependency refresh across the Expo stack
-- Clerk package review for newer supported package layout
-- dynamic route screen extraction if the route tree still feels noisy
-- harden growth-prone Convex queries and add pagination where history-style data can grow
-- standardize form parsing around `form DTO schema -> parser -> domain schema`
-
-Status:
-
-- pending
-
-## Branching
-
-Suggested future branches:
-
-- `feat/session-day-picker`
-  Let the user explicitly choose which planned training day to start.
-- `docs/project-setup`
-  Replace the starter docs with real local setup, seeding, and preview-build instructions.
-- `refactor/dynamic-route-screens`
-  Move remaining dynamic route files into feature-owned screens and keep `app/` route-thin.
-- `refactor/loading-error-states`
-  Add shared loading/error screen states and route-level error boundaries for Convex-backed views.
-- `refactor/session-autosave-boundary`
-  Split the workout session autosave orchestration into clearer draft and persistence layers.
-- `refactor/screen-wrapper-flexibility`
-  Make the shared screen shell work for simple screens, lists, and fixed-footer layouts without forced scrolling.
-- `chore/remove-starter-scaffold`
-  Remove the Expo starter reset script and clean its references from `package.json`, `README`, and local guidance.
-- `chore/expo-sdk-55-upgrade`
-  Upgrade Expo and aligned native packages in a dedicated migration branch.
-- `chore/dependency-refresh`
-  Refresh non-Expo dependencies after the SDK upgrade settles.
-- `refactor/query-hardening-and-pagination`
-  Add explicit limits and pagination paths to the remaining growth-prone Convex queries.
-- `refactor/form-dto-parsing`
-  Standardize forms around `DTO schema -> parser -> domain schema`.
+- Navigation cleanup
+  - Simplified the shared app header so it stays clean and does not compete with actual screen actions.
+  - Moved the Training Split edit action out of the shared header and into the Training Split tab itself.
+  - Removed redundant heading and subheading text from the main tab screens to reclaim vertical space.
+  - Added an explicit back arrow in the nested Statistics workout screens so the user can return directly to the Statistics feed.
+  - Softened the inner Measurements tab switch by using an outlined active state, keeping the primary focus on creating or updating entries.

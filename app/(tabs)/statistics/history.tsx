@@ -1,6 +1,7 @@
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { StatisticsHistoryScreenSkeleton } from "@/components/feedback/loading-skeleton";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { HistorySessionCard } from "@/features/statistics/components/history-session-card";
@@ -17,10 +18,8 @@ export default function WorkoutHistoryScreen() {
 
   return (
     <ScreenWrapper>
-      <Stack.Screen options={{ title: "Workout history", headerTitle: "Workout history" }} />
-
       {history.status === "LoadingFirstPage" ? (
-        <ScreenStateMessage title="Loading..." showSpinner />
+        <StatisticsHistoryScreenSkeleton />
       ) : history.results.length === 0 ? (
         <ScreenStateMessage
           title="No completed workouts yet"

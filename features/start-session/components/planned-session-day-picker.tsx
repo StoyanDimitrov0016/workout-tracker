@@ -10,7 +10,7 @@ type PlannedSessionDay = {
   exercises: Array<{
     exerciseId: string;
     exerciseName: string;
-    setTargets: Array<{ reps: number; restSec: number }>;
+    setTargets: Array<{ reps: number; weightKg: number; restSec: number }>;
   }>;
   isRecommended: boolean;
   status: "available" | "completed_today";
@@ -42,21 +42,16 @@ export function PlannedSessionDayPicker({
     <View className="gap-6">
       {errorMessage ? <InlineErrorBanner message={errorMessage} /> : null}
 
-      <View className="gap-1">
-        <Text className="text-sm text-text-tertiary">Choose planned day</Text>
-        <Text className="text-2xl font-semibold text-text-primary">
-          {selectedDay?.title?.trim() || "Training"}
-        </Text>
-        <Text className="text-sm text-text-secondary">
-          Start the exact training day you want instead of only the nearest one.
-        </Text>
-      </View>
-
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-4">
         <View className="flex-row gap-3 px-4">
           {days.map((day) => {
             const isSelected = day.weekday === selectedWeekday;
-            const badge = day.status === "completed_today" ? "Done today" : day.isRecommended ? "Recommended" : null;
+            const badge =
+              day.status === "completed_today"
+                ? "Done today"
+                : day.isRecommended
+                  ? "Recommended"
+                  : null;
 
             return (
               <Pressable
@@ -126,7 +121,7 @@ export function PlannedSessionDayPicker({
       {selectedDay.status === "completed_today" && selectedDay.sessionId ? (
         <Pressable
           onPress={() => onOpenCompleted(selectedDay.sessionId!)}
-          className="rounded-xl py-3 bg-primary"
+          className="rounded-xl bg-primary py-3"
         >
           <Text className="text-center font-semibold text-white">View summary</Text>
         </Pressable>

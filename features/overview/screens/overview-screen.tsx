@@ -1,7 +1,10 @@
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
+import {
+  OverviewScreenSkeleton,
+  SkeletonBlock,
+} from "@/components/feedback/loading-skeleton";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { OverviewMetricCard } from "@/features/overview/components/overview-metric-card";
 import { OverviewSplitDayCard } from "@/features/overview/components/overview-split-day-card";
@@ -28,7 +31,7 @@ export function OverviewScreen() {
   if (isLoading) {
     return (
       <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." showSpinner />
+        <OverviewScreenSkeleton />
       </ScreenWrapper>
     );
   }
@@ -58,24 +61,7 @@ export function OverviewScreen() {
     <ScreenWrapper>
       <View className="gap-4">
         <View className="gap-1">
-          <Text className="text-sm text-text-tertiary">Overview</Text>
           <Text className="text-2xl font-semibold text-text-primary">{split.name}</Text>
-          <Text className="text-sm text-text-secondary">
-            Start from your current or nearest planned training day.
-          </Text>
-        </View>
-
-        <View className="gap-2">
-          <Text className="text-sm text-text-tertiary">Training program</Text>
-          {primaryDay ? (
-            <Text className="text-sm text-text-secondary">
-              {activeSession
-                ? `You have an active ${weekdayToLabel(primaryDay.weekday).toLowerCase()} session in progress.`
-                : upcomingDelta === 0
-                  ? "Your first card is today's plan."
-                  : "Your first card is the nearest planned workout."}
-            </Text>
-          ) : null}
         </View>
 
         {orderedDays.length > 0 ? (
@@ -163,7 +149,20 @@ export function OverviewScreen() {
           <Text className="text-sm text-text-tertiary">Weight preview</Text>
           <View className="gap-3 rounded-2xl border border-border bg-card p-4">
             {weightSummary === undefined ? (
-              <Text className="text-sm text-text-tertiary">Loading weight data...</Text>
+              <View className="gap-3">
+                <View className="flex-row items-center justify-between">
+                  <SkeletonBlock width="26%" />
+                  <SkeletonBlock width="24%" />
+                </View>
+                <View className="flex-row items-center justify-between">
+                  <SkeletonBlock width="18%" />
+                  <SkeletonBlock width="28%" />
+                </View>
+                <View className="flex-row items-center justify-between">
+                  <SkeletonBlock width="28%" />
+                  <SkeletonBlock width="24%" />
+                </View>
+              </View>
             ) : (
               <View className="gap-3">
                 <View className="flex-row items-center justify-between">

@@ -10,7 +10,7 @@ type OverviewSplitDayCardProps = {
     exercises: Array<{
       exerciseId: string;
       exerciseName: string;
-      setTargets: Array<{ reps: number; restSec: number }>;
+      setTargets: Array<{ reps: number; weightKg: number; restSec: number }>;
     }>;
     totalSets: number;
     setsByMuscle: Array<{ muscleName: string; sets: number }>;
@@ -51,7 +51,9 @@ export function OverviewSplitDayCard({
         {day.exercises.length > 0 ? (
           day.exercises.map((exercise, exerciseIndex) => (
             <View key={`${exercise.exerciseId}-${exerciseIndex}`} className="gap-1">
-              <Text className="text-sm font-semibold text-text-primary">{exercise.exerciseName}</Text>
+              <Text className="text-sm font-semibold text-text-primary">
+                {exercise.exerciseName}
+              </Text>
               <Text className="text-xs text-text-tertiary">
                 {formatSetTargetsSummary(exercise.setTargets)}
               </Text>

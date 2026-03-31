@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import React from "react";
 import { useColorScheme } from "react-native";
 
@@ -11,6 +11,7 @@ import { HapticTab } from "@/components/haptic-tab";
  */
 export default function TabLayout() {
   const isDark = useColorScheme() === "dark";
+  const router = useRouter();
 
   return (
     <Tabs
@@ -66,6 +67,19 @@ export default function TabLayout() {
         options={{
           title: "Statistics",
           popToTopOnBlur: true,
+          tabBarButton: (props) => (
+            <HapticTab
+              {...props}
+              onPress={(event) => {
+                if (props.accessibilityState?.selected) {
+                  router.dismissTo("/statistics");
+                  return;
+                }
+
+                props.onPress?.(event);
+              }}
+            />
+          ),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "stats-chart" : "stats-chart-outline"}

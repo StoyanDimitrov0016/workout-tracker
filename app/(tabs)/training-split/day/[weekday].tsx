@@ -1,4 +1,5 @@
 import { Stack, useRouter } from "expo-router";
+import { TrainingSplitDaySkeleton } from "@/components/feedback/loading-skeleton";
 import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
@@ -20,7 +21,7 @@ export default function TrainingSplitDay() {
   if (split === undefined) {
     return (
       <ScreenWrapper>
-        <ScreenStateMessage title="Loading..." showSpinner />
+        <TrainingSplitDaySkeleton />
       </ScreenWrapper>
     );
   }

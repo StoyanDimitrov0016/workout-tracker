@@ -3,11 +3,12 @@ import { Pressable, Text, View } from "react-native";
 
 import { InlineErrorBanner } from "@/components/feedback/inline-error-banner";
 import type { Doc } from "@/convex/_generated/dataModel";
+import { preferencesResource } from "@/features/preferences/data/preferences-resource";
 import { RestTimer } from "@/features/start-session/components/rest-timer";
 import { SessionExerciseCard } from "@/features/start-session/components/session-exercise-card";
 import { TIMER_PRESETS } from "@/features/start-session/constants/timer";
-import { useActiveWorkoutSession } from "@/features/start-session/hooks/use-active-workout-session";
 import { buildSessionEntryDrafts } from "@/features/start-session/utils/session-draft";
+import { useActiveWorkoutSession } from "@/features/start-session/hooks/use-active-workout-session";
 import { useRestTimer } from "@/features/start-session/hooks/use-rest-timer";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import { formatDateTime } from "@/utils/format/date-time";
@@ -19,6 +20,7 @@ type ActiveSessionWorkspaceProps = {
 export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps) {
   const router = useRouter();
   const timer = useRestTimer();
+  const exercisePreferences = preferencesResource.useExercisePreferences();
   const {
     canFinish,
     entries,
@@ -30,16 +32,15 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
     finish,
   } = useActiveWorkoutSession(session);
   const fallbackEntries = buildSessionEntryDrafts(session);
+  const preferenceByExerciseId = new Map(
+    (exercisePreferences ?? []).map((preference) => [String(preference.exerciseId), preference])
+  );
 
   return (
     <View className="gap-6">
       {errorMessage ? <InlineErrorBanner message={errorMessage} /> : null}
 
       <View className="gap-1">
-        <Text className="text-sm text-text-tertiary">Active session</Text>
-        <Text className="text-2xl font-semibold text-text-primary">
-          {session.title.trim() || "Training"}
-        </Text>
         <Text className="text-sm text-text-secondary">
           {weekdayToLabel(session.weekday)} | Started {formatDateTime(session.startedAt)}
         </Text>
@@ -68,9 +69,16 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
               setTargets={exercise.targetSets}
               sets={entry.sets}
               isDone={entry.isDone}
+              preference={preferenceByExerciseId.get(String(exercise.exerciseId))}
               onToggleDone={() => toggleDone(exerciseIndex)}
               onAddSet={() => addSet(exerciseIndex)}
               onChangeSet={(setIndex, next) => updateSetDraft(exerciseIndex, setIndex, next)}
+              onOpenPreference={() =>
+                router.push({
+                  pathname: "/(modals)/exercise-preference",
+                  params: { exerciseId: String(exercise.exerciseId) },
+                })
+              }
             />
           );
         })}
