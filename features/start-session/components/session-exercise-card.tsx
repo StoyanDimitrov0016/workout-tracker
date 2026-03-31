@@ -18,7 +18,7 @@ interface SessionExerciseCardProps {
   isDone: boolean;
   preference?: ExercisePreferencePreview;
   onToggleDone: () => void;
-  onAddSet: () => void;
+  onAddSet: () => void | Promise<void>;
   onChangeSet: (index: number, next: { reps: string; weightKg: string; restSec: string }) => void;
   onOpenPreference: () => void;
 }
@@ -36,6 +36,7 @@ export function SessionExerciseCard({
 }: SessionExerciseCardProps) {
   const isDark = useColorScheme() === "dark";
   const [isPreferenceExpanded, setIsPreferenceExpanded] = useState(false);
+  const [completedSets, setCompletedSets] = useState<boolean[]>(() => sets.map(() => false));
   const totalReps = sets.reduce((sum, set) => sum + Number.parseInt(set.reps || "0", 10), 0);
   const totalWeight = sets.reduce(
     (sum, set) => sum + NumberMapper.toNumber(set.weightKg || "0"),
@@ -49,6 +50,24 @@ export function SessionExerciseCard({
   const hasNotes = notes.length > 0;
   const hasPreference = Boolean(preference?.hasPreference && (hasReferenceUrl || hasNotes));
   const iconColor = isDark ? "#9ca3af" : "#6b7280";
+  const completionColor = isDark ? "#4ade80" : "#16a34a";
+
+  const toggleSetCompleted = (setIndex: number) => {
+    setCompletedSets((current) =>
+      current.map((item, index) => (index === setIndex ? !item : item))
+    );
+  };
+
+  const handleAddSet = async () => {
+    setCompletedSets((current) => [...current, false]);
+
+    try {
+      await onAddSet();
+    } catch (error) {
+      setCompletedSets((current) => current.slice(0, -1));
+      throw error;
+    }
+  };
 
   return (
     <View className="gap-3 rounded-2xl border border-border bg-card p-4">
@@ -88,10 +107,7 @@ export function SessionExerciseCard({
               {hasReferenceUrl ? (
                 <View className="gap-1">
                   <Text className="text-xs text-text-tertiary">Reference</Text>
-                  <Pressable
-                    onPress={() => void Linking.openURL(referenceUrl)}
-                    className="py-1"
-                  >
+                  <Pressable onPress={() => void Linking.openURL(referenceUrl)} className="py-1">
                     <Text className="text-sm font-medium text-primary" numberOfLines={1}>
                       {referenceUrl}
                     </Text>
@@ -134,10 +150,25 @@ export function SessionExerciseCard({
           <View className="gap-3">
             {sets.map((set, index) => {
               const target = setTargets[index];
+              const isSetCompleted = completedSets[index] ?? false;
 
               return (
-                <View key={`${name}-${index}`} className="gap-2 rounded-xl bg-surface p-3">
-                  <Text className="text-xs font-semibold text-text-secondary">Set {index + 1}</Text>
+                <View
+                  key={`${name}-${index}`}
+                  className={`gap-2 rounded-xl p-3 ${isSetCompleted ? "bg-accent/10" : "bg-surface"}`}
+                >
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-xs font-semibold text-text-secondary">
+                      Set {index + 1}
+                    </Text>
+                    <Pressable onPress={() => toggleSetCompleted(index)} className="p-1">
+                      <Ionicons
+                        name={isSetCompleted ? "checkbox" : "square-outline"}
+                        size={20}
+                        color={isSetCompleted ? completionColor : iconColor}
+                      />
+                    </Pressable>
+                  </View>
                   <View className="flex-row gap-2">
                     <View className="flex-1">
                       <Text className="text-xs text-text-tertiary">Reps</Text>
@@ -178,7 +209,10 @@ export function SessionExerciseCard({
             })}
           </View>
           <View className="flex-row gap-2">
-            <Pressable onPress={onAddSet} className="flex-1 rounded-xl bg-primary px-3 py-2">
+            <Pressable
+              onPress={() => void handleAddSet()}
+              className="flex-1 rounded-xl bg-primary px-3 py-2"
+            >
               <Text className="text-center text-sm font-semibold text-white">Add set</Text>
             </Pressable>
             <Pressable
