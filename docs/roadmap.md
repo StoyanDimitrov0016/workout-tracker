@@ -66,7 +66,9 @@ We will keep updating this file as new ideas appear and priorities change.
 
 - Exercise preferences in account settings
   - Added a user-level Preferences area inside the account modal.
-  - Added an Exercise Preferences screen with one reference URL and one note per exercise per user, independent from any training split.
+  - Added a per-user, per-exercise preference mapping in Convex so each user can save one reference URL and one note for every exercise independently from any training split.
+  - Added an Exercise Preferences screen and editor flow to create, update, and clear those saved exercise preferences from account settings.
+  - Surfaced the saved reference URL and notes directly inside the active workout session flow so technique reminders and machine setup details are available when they matter.
   - Added placeholder disabled options for future unit and session-prefill preferences so the settings structure is already visible.
 
 - Loading states and measurements route stability
