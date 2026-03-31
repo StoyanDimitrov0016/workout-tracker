@@ -11,10 +11,10 @@ We will keep updating this file as new ideas appear and priorities change.
 - Prefill session values from the last matching training day
   Prefill reps and weights based on the latest completed session for the same planned weekday, not just the latest time the exercise was performed globally.
 
-- Per-set completion checkbox
-  Add a very simple way to mark that a set is done without relying only on the entered numbers.
-
 ## Next
+
+- Per-set completion persistence
+  Decide whether the per-set checkbox should stay local-only during the active session or be persisted so interrupted or partial sessions can restore it later.
 
 - Exercise substitutions
   Allow an exercise to have substitutions so the user can switch to a similar movement when equipment is busy or unavailable.
@@ -70,6 +70,10 @@ We will keep updating this file as new ideas appear and priorities change.
   - Added an Exercise Preferences screen and editor flow to create, update, and clear those saved exercise preferences from account settings.
   - Surfaced the saved reference URL and notes directly inside the active workout session flow so technique reminders and machine setup details are available when they matter.
   - Added placeholder disabled options for future unit and session-prefill preferences so the settings structure is already visible.
+
+- Local per-set completion checkbox
+  - Added a quick per-set checkbox inside the active workout session flow to help the user keep up with completed sets while training.
+  - Kept the checkbox purely presentational and local to the active screen; it is not persisted to the database and is not restored after the session is finished.
 
 - Loading states and measurements route stability
   - Added layout skeletons across the app tabs instead of relying only on generic loading spinners.
