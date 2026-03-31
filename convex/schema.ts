@@ -38,6 +38,15 @@ export default defineSchema({
     .index("by_name", ["name"])
     .searchIndex("search_name", { searchField: "name" }),
 
+  exercisePreferences: defineTable({
+    userToken: v.string(),
+    exerciseId: v.id("exercises"),
+    referenceUrl: v.optional(v.string()),
+    notes: v.optional(v.string()),
+  })
+    .index("by_user", ["userToken"])
+    .index("by_user_and_exercise", ["userToken", "exerciseId"]),
+
   splits: defineTable({
     userToken: v.string(),
     name: v.string(),
