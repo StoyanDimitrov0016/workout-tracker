@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Input, type InputProps } from "@/components/ui/input";
-import { NumberMapper } from "@/utils/form/number-mapper";
+import { NumberMapper, type NumberParseMode } from "@/utils/form/number-mapper";
 
 type NumberInputProps = Omit<InputProps, "keyboardType" | "onChangeText" | "value"> & {
   value: number | null | undefined;
   onChangeNumber: (value: number | null) => void;
+  mode?: NumberParseMode;
   formatValue?: (value: number) => string;
 };
 
@@ -23,29 +24,36 @@ function formatDraftValue(value: number | null | undefined, formatValue: (value:
 export function NumberInput({
   value,
   onChangeNumber,
+  mode = "decimal",
   formatValue = defaultFormatValue,
+  onFocus,
   onBlur,
   ...props
 }: NumberInputProps) {
   const [draftValue, setDraftValue] = useState(() => formatDraftValue(value, formatValue));
-
-  useEffect(() => {
-    setDraftValue(formatDraftValue(value, formatValue));
-  }, [formatValue, value]);
+  const [isFocused, setIsFocused] = useState(false);
+  const displayValue = isFocused ? draftValue : formatDraftValue(value, formatValue);
 
   return (
     <Input
       {...props}
-      value={draftValue}
-      keyboardType="decimal-pad"
+      value={displayValue}
+      keyboardType={mode === "integer" ? "number-pad" : "decimal-pad"}
       onChangeText={(text) => {
         setDraftValue(text);
-        const nextValue = NumberMapper.toNumber(text);
-        onChangeNumber(Number.isNaN(nextValue) ? null : nextValue);
+        onChangeNumber(NumberMapper.parseInput(text, mode));
+      }}
+      onFocus={(event) => {
+        setDraftValue(formatDraftValue(value, formatValue));
+        setIsFocused(true);
+        onFocus?.(event);
       }}
       onBlur={(event) => {
-        const nextValue = NumberMapper.toNumber(draftValue);
-        setDraftValue(formatDraftValue(Number.isNaN(nextValue) ? null : nextValue, formatValue));
+        setIsFocused(false);
+
+        const nextValue = NumberMapper.parseInput(draftValue, mode);
+        onChangeNumber(nextValue);
+        setDraftValue(formatDraftValue(nextValue, formatValue));
         onBlur?.(event);
       }}
     />
