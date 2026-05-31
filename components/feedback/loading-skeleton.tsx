@@ -209,9 +209,7 @@ export function StatisticsScreenSkeleton() {
 
 export function MeasurementsWeightScreenSkeleton() {
   return (
-    <View className="gap-5 pb-4 pt-1">
-      <SkeletonBlock height={50} width="100%" />
-
+    <View className="gap-5 pb-4">
       <SkeletonCard>
         <SkeletonBlock height={22} width="34%" />
         <SkeletonBlock height={48} width="100%" />
@@ -260,9 +258,7 @@ export function MeasurementsWeightScreenSkeleton() {
 
 export function MeasurementsCircumferencesScreenSkeleton() {
   return (
-    <View className="gap-5 pb-4 pt-1">
-      <SkeletonBlock height={50} width="100%" />
-
+    <View className="gap-5 pb-4">
       <SkeletonCard>
         <SkeletonBlock height={22} width="42%" />
         {Array.from({ length: 6 }).map((_, index) => (

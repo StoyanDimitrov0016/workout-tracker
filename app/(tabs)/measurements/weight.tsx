@@ -1,7 +1,7 @@
-import { MeasurementsWeightScreen } from "@/features/measurements/screens/measurements-weight-screen";
+import { MeasurementsScreen } from "@/features/measurements/screens/measurements-screen";
 
 export { RouteErrorBoundary as ErrorBoundary } from "@/components/feedback/route-error-boundary";
 
 export default function MeasurementsWeightRoute() {
-  return <MeasurementsWeightScreen />;
+  return <MeasurementsScreen initialView="weight" />;
 }

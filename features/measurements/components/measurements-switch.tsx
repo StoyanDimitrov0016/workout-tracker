@@ -1,41 +1,33 @@
-import { useRouter, useSegments } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+
+export type MeasurementView = "weight" | "circumferences";
 
 const tabs = [
   {
     key: "weight",
     label: "Weight",
-    href: "/(tabs)/measurements/weight",
   },
   {
     key: "circumferences",
     label: "Circumferences",
-    href: "/(tabs)/measurements/circumferences",
   },
 ] as const;
 
-function getActiveKey(segments: string[]) {
-  const measurementsIndex = segments.indexOf("measurements");
-  if (measurementsIndex === -1) return "weight";
-  const nextSegment = segments[measurementsIndex + 1];
-  if (nextSegment === "circumferences") return "circumferences";
-  return "weight";
-}
+type MeasurementsSwitchProps = {
+  activeView: MeasurementView;
+  onViewChange: (view: MeasurementView) => void;
+};
 
-export function MeasurementsSwitch() {
-  const segments = useSegments();
-  const router = useRouter();
-  const activeKey = getActiveKey(segments);
-
+export function MeasurementsSwitch({ activeView, onViewChange }: MeasurementsSwitchProps) {
   return (
     <View className="flex-row rounded-2xl border border-border bg-card/70 p-1">
       {tabs.map((tab) => {
-        const isActive = activeKey === tab.key;
+        const isActive = activeView === tab.key;
 
         return (
           <Pressable
             key={tab.key}
-            onPress={() => router.replace(tab.href)}
+            onPress={() => onViewChange(tab.key)}
             className={`flex-1 rounded-xl border px-3 py-2.5 ${
               isActive ? "border-primary bg-transparent" : "border-transparent bg-transparent"
             }`}
