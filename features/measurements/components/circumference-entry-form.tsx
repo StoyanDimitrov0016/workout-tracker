@@ -1,8 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-import { MeasurementSaveFeedback } from "@/features/measurements/components/measurement-save-feedback";
 import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import {
   CircumferenceMapper,
@@ -14,6 +13,7 @@ import {
   circumferenceFieldNames,
 } from "@/features/measurements/constants/circumference-fields";
 import { CircumferenceSchema } from "@/features/measurements/schemas/circumference-schema";
+import { useToast } from "@/hooks/use-toast";
 
 const defaultValues = CircumferenceMapper.toFormValues(null);
 const fieldGroups: Array<{
@@ -96,6 +96,7 @@ function MeasurementField({
 
 export function CircumferenceEntryForm() {
   const addCircumferenceEntry = measurementsResource.circumferences.useCreate();
+  const { showError, showSuccess } = useToast();
   const {
     control,
     handleSubmit,
@@ -106,15 +107,11 @@ export function CircumferenceEntryForm() {
   } = useForm<CircumferenceFormValues>({
     defaultValues,
   });
-  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const clearFeedback = (name?: CircumferenceField) => {
     if (name) {
       clearErrors(name);
     }
-    setSaveErrorMessage(null);
-    setSuccessMessage(null);
   };
 
   const onSubmit = async (values: CircumferenceFormValues) => {
@@ -136,15 +133,11 @@ export function CircumferenceEntryForm() {
     }
 
     try {
-      setSaveErrorMessage(null);
       await addCircumferenceEntry(parsed.data);
       reset(defaultValues);
-      setSuccessMessage("Circumference measurements saved.");
+      showSuccess("Circumference measurements saved.");
     } catch (error) {
-      setSuccessMessage(null);
-      setSaveErrorMessage(
-        error instanceof Error ? error.message : "Could not save your measurements."
-      );
+      showError(error instanceof Error ? error.message : "Could not save your measurements.");
     }
   };
 
@@ -177,11 +170,6 @@ export function CircumferenceEntryForm() {
           ))}
         </View>
       ))}
-
-      {saveErrorMessage ? (
-        <MeasurementSaveFeedback kind="error" message={saveErrorMessage} />
-      ) : null}
-      {successMessage ? <MeasurementSaveFeedback kind="success" message={successMessage} /> : null}
 
       <Pressable
         onPress={handleSubmit(onSubmit)}

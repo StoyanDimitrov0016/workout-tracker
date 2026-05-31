@@ -7,6 +7,7 @@ import { ActiveSessionWorkspace } from "@/features/start-session/components/acti
 import { PlannedSessionDayPicker } from "@/features/start-session/components/planned-session-day-picker";
 import { StartSessionEmptyState } from "@/features/start-session/components/start-session-empty-state";
 import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
+import { useToast } from "@/hooks/use-toast";
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -14,10 +15,10 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 export function StartSessionScreen() {
   const router = useRouter();
+  const { showError } = useToast();
   const activeSession = workoutSessionResource.useActive();
   const plannedDayOptions = workoutSessionResource.usePlannedDayOptions();
   const startSession = workoutSessionResource.useStartPlannedDay();
-  const [startErrorMessage, setStartErrorMessage] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [selectedWeekday, setSelectedWeekday] = useState<number | null>(null);
 
@@ -83,7 +84,6 @@ export function StartSessionScreen() {
           selectedWeekday={selectedWeekday}
           onSelectWeekday={setSelectedWeekday}
           isStarting={isStarting}
-          errorMessage={startErrorMessage}
           onOpenCompleted={(sessionId) =>
             router.push({
               pathname: "/start-session/summary/[sessionId]",
@@ -91,13 +91,12 @@ export function StartSessionScreen() {
             })
           }
           onStart={async () => {
-            setStartErrorMessage(null);
             setIsStarting(true);
 
             try {
               await startSession({ weekday: selectedWeekday });
             } catch (error) {
-              setStartErrorMessage(getErrorMessage(error, "Could not start the session."));
+              showError(getErrorMessage(error, "Could not start the session."));
             } finally {
               setIsStarting(false);
             }

@@ -3,7 +3,6 @@ import { Controller, useForm } from "react-hook-form";
 import { Linking, Pressable, Text, TextInput, View } from "react-native";
 
 import type { Id } from "@/convex/_generated/dataModel";
-import { MeasurementSaveFeedback } from "@/features/measurements/components/measurement-save-feedback";
 import {
   MAX_EXERCISE_NOTES_LENGTH,
   MAX_EXERCISE_REFERENCE_URL_LENGTH,
@@ -16,6 +15,7 @@ import {
   ExercisePreferenceSchema,
   type ExercisePreferenceInput,
 } from "@/features/preferences/schemas/exercise-preference-schema";
+import { useToast } from "@/hooks/use-toast";
 
 type ExercisePreferenceEditorProps = {
   exerciseId: Id<"exercises">;
@@ -36,8 +36,7 @@ export function ExercisePreferenceEditor({
   hasPreference,
   onSave,
 }: ExercisePreferenceEditorProps) {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { showError, showSuccess } = useToast();
   const {
     control,
     handleSubmit,
@@ -54,8 +53,6 @@ export function ExercisePreferenceEditor({
   });
 
   useEffect(() => {
-    setErrorMessage(null);
-    setSuccessMessage(null);
     if (isDirty) return;
 
     reset(
@@ -73,8 +70,6 @@ export function ExercisePreferenceEditor({
   const watchedNotes = watch("notes") ?? "";
 
   const handleReset = () => {
-    setErrorMessage(null);
-    setSuccessMessage(null);
     clearErrors();
     reset(
       ExercisePreferenceMapper.toFormValues({
@@ -86,9 +81,6 @@ export function ExercisePreferenceEditor({
   };
 
   const onSubmit = async (values: ExercisePreferenceFormValues) => {
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
     const parsed = ExercisePreferenceSchema.safeParse(ExercisePreferenceMapper.toInput(values));
 
     if (!parsed.success) {
@@ -112,15 +104,13 @@ export function ExercisePreferenceEditor({
         notes: parsed.data.notes,
       });
       reset(ExercisePreferenceMapper.toFormValues(parsed.data), { keepDirty: false });
-      setSuccessMessage(
+      showSuccess(
         parsed.data.referenceUrl || parsed.data.notes
           ? "Exercise preference saved."
           : "Exercise preference cleared."
       );
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Could not save the exercise preference."
-      );
+      showError(error instanceof Error ? error.message : "Could not save the exercise preference.");
     }
   };
 
@@ -159,8 +149,6 @@ export function ExercisePreferenceEditor({
               value={value ?? ""}
               onChangeText={(nextValue) => {
                 clearErrors("referenceUrl");
-                setErrorMessage(null);
-                setSuccessMessage(null);
                 onChange(nextValue);
               }}
               onBlur={onBlur}
@@ -191,8 +179,6 @@ export function ExercisePreferenceEditor({
               value={value ?? ""}
               onChangeText={(nextValue) => {
                 clearErrors("notes");
-                setErrorMessage(null);
-                setSuccessMessage(null);
                 onChange(nextValue);
               }}
               onBlur={onBlur}
@@ -219,9 +205,6 @@ export function ExercisePreferenceEditor({
           <Text className="text-sm text-text-primary">{savedNotes}</Text>
         </View>
       ) : null}
-
-      {errorMessage ? <MeasurementSaveFeedback kind="error" message={errorMessage} /> : null}
-      {successMessage ? <MeasurementSaveFeedback kind="success" message={successMessage} /> : null}
 
       <View className="flex-row gap-3">
         <Pressable

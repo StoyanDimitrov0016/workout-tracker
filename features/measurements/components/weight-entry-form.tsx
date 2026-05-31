@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
 
-import { MeasurementSaveFeedback } from "@/features/measurements/components/measurement-save-feedback";
 import { WeightEntryAdjuster } from "@/features/measurements/components/weight-entry-adjuster";
 import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import {
@@ -11,6 +10,7 @@ import {
 } from "@/features/measurements/mappers/weight-entry-mapper";
 import { WeightEntrySchema } from "@/features/measurements/schemas/weight-entry-schema";
 import { clampWeight, formatWeightKg } from "@/features/measurements/utils/weight";
+import { useToast } from "@/hooks/use-toast";
 
 type WeightEntryFormProps = {
   latestWeightKg: number | null;
@@ -18,6 +18,7 @@ type WeightEntryFormProps = {
 
 export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
   const addWeightEntry = measurementsResource.weight.useCreate();
+  const { showError, showSuccess } = useToast();
 
   const {
     control,
@@ -31,8 +32,6 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
   });
 
   const [deltaKg, setDeltaKg] = useState(0);
-  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (latestWeightKg === null || isDirty) return;
@@ -46,8 +45,6 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
 
     const nextValue = clampWeight(latestWeightKg + delta);
     clearErrors("weightKg");
-    setSaveErrorMessage(null);
-    setSuccessMessage(null);
     setDeltaKg(delta);
     setValue("weightKg", formatWeightKg(nextValue), { shouldDirty: true });
   };
@@ -65,18 +62,14 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
     }
 
     try {
-      setSaveErrorMessage(null);
       await addWeightEntry(parsed.data);
       setValue("weightKg", WeightEntryMapper.toFormValues(parsed.data).weightKg, {
         shouldDirty: false,
       });
       setDeltaKg(0);
-      setSuccessMessage("Weight entry saved.");
+      showSuccess("Weight entry saved.");
     } catch (error) {
-      setSuccessMessage(null);
-      setSaveErrorMessage(
-        error instanceof Error ? error.message : "Could not save your weight entry."
-      );
+      showError(error instanceof Error ? error.message : "Could not save your weight entry.");
     }
   };
 
@@ -92,8 +85,6 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
             onChangeText={(text) => {
               clearErrors("weightKg");
               setDeltaKg(0);
-              setSaveErrorMessage(null);
-              setSuccessMessage(null);
               onChange(text);
             }}
             onBlur={onBlur}
@@ -112,10 +103,6 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
       {errors.weightKg ? (
         <Text className="text-sm text-status-error">{errors.weightKg.message}</Text>
       ) : null}
-      {saveErrorMessage ? (
-        <MeasurementSaveFeedback kind="error" message={saveErrorMessage} />
-      ) : null}
-      {successMessage ? <MeasurementSaveFeedback kind="success" message={successMessage} /> : null}
       <Pressable
         onPress={handleSubmit(onSubmit)}
         disabled={isSubmitting}

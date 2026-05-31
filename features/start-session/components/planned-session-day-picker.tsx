@@ -1,6 +1,5 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { InlineErrorBanner } from "@/components/feedback/inline-error-banner";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import { formatSetTargetsSummary } from "@/features/splits/utils/targets";
 
@@ -20,7 +19,6 @@ type PlannedSessionDay = {
 type PlannedSessionDayPickerProps = {
   days: PlannedSessionDay[];
   selectedWeekday: number;
-  errorMessage: string | null;
   isStarting: boolean;
   onSelectWeekday: (weekday: number) => void;
   onStart: () => void;
@@ -30,7 +28,6 @@ type PlannedSessionDayPickerProps = {
 export function PlannedSessionDayPicker({
   days,
   selectedWeekday,
-  errorMessage,
   isStarting,
   onSelectWeekday,
   onStart,
@@ -40,8 +37,6 @@ export function PlannedSessionDayPicker({
 
   return (
     <View className="gap-6">
-      {errorMessage ? <InlineErrorBanner message={errorMessage} /> : null}
-
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-4">
         <View className="flex-row gap-3 px-4">
           {days.map((day) => {

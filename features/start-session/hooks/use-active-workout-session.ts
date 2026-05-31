@@ -10,6 +10,7 @@ import {
   type SessionEntryDraft,
   type SessionSetDraft,
 } from "@/features/start-session/utils/session-draft";
+import { useToast } from "@/hooks/use-toast";
 
 type PendingSetSave = {
   exerciseIndex: number;
@@ -26,11 +27,11 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
   const addExerciseSet = workoutSessionResource.useAddSet();
   const toggleExerciseDone = workoutSessionResource.useToggleDone();
   const finishSession = workoutSessionResource.useFinish();
+  const { showError } = useToast();
 
   const [entries, setEntries] = useState<Record<string, SessionEntryDraft>>(() =>
     buildSessionEntryDrafts(session)
   );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFinishing, setIsFinishing] = useState(false);
   const pendingSetSavesRef = useRef<Map<string, PendingSetSave>>(new Map());
   const pendingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -116,7 +117,7 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
           pendingSave.set
         );
       } catch (error) {
-        setErrorMessage(getErrorMessage(error, "Could not save session changes."));
+        showError(getErrorMessage(error, "Could not save session changes."));
       }
     }, 400);
 
@@ -124,7 +125,6 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
   };
 
   const updateSetDraft = (exerciseIndex: number, setIndex: number, next: SessionSetDraft) => {
-    setErrorMessage(null);
     setEntries((previous) => {
       const key = getSessionExerciseKey(exerciseIndex);
       const currentEntry = previous[key];
@@ -143,8 +143,6 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
   };
 
   const addSet = async (exerciseIndex: number) => {
-    setErrorMessage(null);
-
     const exercise = session.exercises[exerciseIndex];
     const currentEntry = entries[getSessionExerciseKey(exerciseIndex)];
     if (!exercise || !currentEntry) return;
@@ -176,13 +174,11 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
         ...previous,
         [getSessionExerciseKey(exerciseIndex)]: currentEntry,
       }));
-      setErrorMessage(getErrorMessage(error, "Could not add a new set."));
+      showError(getErrorMessage(error, "Could not add a new set."));
     }
   };
 
   const toggleDone = async (exerciseIndex: number) => {
-    setErrorMessage(null);
-
     const key = getSessionExerciseKey(exerciseIndex);
     const currentEntry = entries[key];
     if (!currentEntry) return;
@@ -209,12 +205,11 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
         ...previous,
         [key]: currentEntry,
       }));
-      setErrorMessage(getErrorMessage(error, "Could not update exercise status."));
+      showError(getErrorMessage(error, "Could not update exercise status."));
     }
   };
 
   const finish = async () => {
-    setErrorMessage(null);
     setIsFinishing(true);
 
     try {
@@ -222,7 +217,7 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
       await finishSession({ sessionId: session._id });
       return session._id;
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, "Could not finish the session."));
+      showError(getErrorMessage(error, "Could not finish the session."));
       return null;
     } finally {
       setIsFinishing(false);
@@ -232,7 +227,6 @@ export function useActiveWorkoutSession(session: Doc<"workoutSessions">) {
   return {
     canFinish: canFinishSession(session, entries),
     entries,
-    errorMessage,
     isFinishing,
     updateSetDraft,
     addSet,

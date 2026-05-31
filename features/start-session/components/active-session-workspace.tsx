@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { InlineErrorBanner } from "@/components/feedback/inline-error-banner";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { preferencesResource } from "@/features/preferences/data/preferences-resource";
 import { RestTimer } from "@/features/start-session/components/rest-timer";
@@ -24,7 +23,6 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
   const {
     canFinish,
     entries,
-    errorMessage,
     isFinishing,
     updateSetDraft,
     addSet,
@@ -38,8 +36,6 @@ export function ActiveSessionWorkspace({ session }: ActiveSessionWorkspaceProps)
 
   return (
     <View className="gap-6">
-      {errorMessage ? <InlineErrorBanner message={errorMessage} /> : null}
-
       <View className="gap-1">
         <Text className="text-sm text-text-secondary">
           {weekdayToLabel(session.weekday)} | Started {formatDateTime(session.startedAt)}
