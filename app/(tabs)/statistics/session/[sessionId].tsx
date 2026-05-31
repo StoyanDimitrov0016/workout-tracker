@@ -1,7 +1,7 @@
 import { WorkoutSessionDetailSkeleton } from "@/components/feedback/loading-skeleton";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
 import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import { statisticsResource } from "@/features/statistics/data/statistics-resource";
 import { WorkoutSessionDetailContent } from "@/features/statistics/components/workout-session-detail-content";
 import {
@@ -19,7 +19,7 @@ export default function WorkoutSessionDetailScreen() {
   const session = statisticsResource.useSessionDetail(sessionId);
 
   return (
-    <ScreenWrapper>
+    <Screen>
       {sessionId === null ? (
         <ScreenStateMessage title="Invalid session." />
       ) : session === undefined ? (
@@ -29,6 +29,6 @@ export default function WorkoutSessionDetailScreen() {
       ) : (
         <WorkoutSessionDetailContent session={session} />
       )}
-    </ScreenWrapper>
+    </Screen>
   );
 }

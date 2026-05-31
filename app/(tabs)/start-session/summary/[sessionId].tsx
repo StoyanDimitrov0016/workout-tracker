@@ -5,7 +5,7 @@ import { InlineErrorBanner } from "@/components/feedback/inline-error-banner";
 import { WorkoutSummarySkeleton } from "@/components/feedback/loading-skeleton";
 import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import { workoutSessionResource } from "@/features/start-session/data/workout-session-resource";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import {
@@ -29,7 +29,7 @@ export default function WorkoutSummaryScreen() {
   const [isReopening, setIsReopening] = useState(false);
 
   return (
-    <ScreenWrapper>
+    <Screen>
       <Stack.Screen options={{ title: "Workout summary", headerTitle: "Workout summary" }} />
 
       {sessionId === null ? (
@@ -133,6 +133,6 @@ export default function WorkoutSummaryScreen() {
           </View>
         </View>
       )}
-    </ScreenWrapper>
+    </Screen>
   );
 }

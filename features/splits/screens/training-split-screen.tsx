@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { TrainingSplitScreenSkeleton } from "@/components/feedback/loading-skeleton";
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import { DayCard } from "@/features/splits/components/day-card";
 import { WEEKDAYS } from "@/features/splits/constants/weekdays";
 import { splitResource } from "@/features/splits/data/split-resource";
@@ -16,9 +16,9 @@ export function TrainingSplitScreen() {
 
   if (split === undefined) {
     return (
-      <ScreenWrapper>
+      <Screen>
         <TrainingSplitScreenSkeleton />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
@@ -27,7 +27,7 @@ export function TrainingSplitScreen() {
   const muscleById = new Map(muscles?.map((muscle) => [muscle._id, muscle]) ?? []);
 
   return (
-    <ScreenWrapper>
+    <Screen>
       {split ? (
         <View className="gap-4">
           <View className="flex-row items-center justify-between gap-3">
@@ -105,6 +105,6 @@ export function TrainingSplitScreen() {
           </Pressable>
         </View>
       )}
-    </ScreenWrapper>
+    </Screen>
   );
 }

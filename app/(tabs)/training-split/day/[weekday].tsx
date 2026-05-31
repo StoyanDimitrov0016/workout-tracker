@@ -2,7 +2,7 @@ import { Stack, useRouter } from "expo-router";
 import { TrainingSplitDaySkeleton } from "@/components/feedback/loading-skeleton";
 import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import { weekdayToLabel } from "@/features/splits/constants/weekdays";
 import { splitResource } from "@/features/splits/data/split-resource";
 import { TrainingSplitDayContent } from "@/features/splits/components/training-split-day-content";
@@ -20,39 +20,39 @@ export default function TrainingSplitDay() {
 
   if (split === undefined) {
     return (
-      <ScreenWrapper>
+      <Screen>
         <TrainingSplitDaySkeleton />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   if (weekday === null) {
     return (
-      <ScreenWrapper>
+      <Screen>
         <ScreenStateMessage title="Invalid weekday." />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   if (!split) {
     return (
-      <ScreenWrapper>
+      <Screen>
         <Stack.Screen options={{ title: weekdayToLabel(weekday) }} />
         <ScreenStateMessage
           title="No plan yet"
           actionLabel="Create split"
           onAction={() => router.push("/training-split/create")}
         />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   const day = split.days.find((item) => item.weekday === weekday);
 
   return (
-    <ScreenWrapper>
+    <Screen>
       <Stack.Screen options={{ title: weekdayToLabel(weekday) }} />
       <TrainingSplitDayContent weekday={weekday} day={day} />
-    </ScreenWrapper>
+    </Screen>
   );
 }

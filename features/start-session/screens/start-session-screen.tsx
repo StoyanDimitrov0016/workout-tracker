@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 
 import { StartSessionScreenSkeleton } from "@/components/feedback/loading-skeleton";
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import { ActiveSessionWorkspace } from "@/features/start-session/components/active-session-workspace";
 import { PlannedSessionDayPicker } from "@/features/start-session/components/planned-session-day-picker";
 import { StartSessionEmptyState } from "@/features/start-session/components/start-session-empty-state";
@@ -43,39 +43,39 @@ export function StartSessionScreen() {
 
   if (activeSession === undefined || plannedDayOptions === undefined) {
     return (
-      <ScreenWrapper>
+      <Screen>
         <StartSessionScreenSkeleton />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   if (!activeSession && plannedDayOptions.status === "no_split") {
     return (
-      <ScreenWrapper>
+      <Screen>
         <StartSessionEmptyState
           title="No training day yet"
           actionLabel="Create split"
           onAction={() => router.push("/training-split/create")}
         />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   if (!activeSession && plannedDayOptions.status === "no_training_day") {
     return (
-      <ScreenWrapper>
+      <Screen>
         <StartSessionEmptyState
           title="No training day yet"
           description="Add at least one exercise to your split before starting a session."
           actionLabel="Edit split"
           onAction={() => router.push("/training-split/edit")}
         />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   return (
-    <ScreenWrapper>
+    <Screen>
       {activeSession ? (
         <ActiveSessionWorkspace key={activeSession._id} session={activeSession} />
       ) : plannedDayOptions.status === "ready" && selectedWeekday !== null ? (
@@ -105,6 +105,6 @@ export function StartSessionScreen() {
       ) : (
         <StartSessionScreenSkeleton />
       )}
-    </ScreenWrapper>
+    </Screen>
   );
 }

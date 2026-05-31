@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { StatisticsScreenSkeleton } from "@/components/feedback/loading-skeleton";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import { ExerciseStatCard } from "@/features/statistics/components/exercise-stat-card";
 import { RecentSessionCard } from "@/features/statistics/components/recent-session-card";
 import { StatisticsSummaryCard } from "@/features/statistics/components/statistics-summary-card";
@@ -16,15 +16,15 @@ export function StatisticsScreen() {
 
   if (statistics === undefined) {
     return (
-      <ScreenWrapper>
+      <Screen>
         <StatisticsScreenSkeleton />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   if (statistics.summary.totalSessions === 0) {
     return (
-      <ScreenWrapper>
+      <Screen>
         <View className="gap-4">
           <ScreenStateMessage
             title="No completed workouts yet"
@@ -37,14 +37,14 @@ export function StatisticsScreen() {
             <Text className="text-center font-semibold text-white">Start workout</Text>
           </Pressable>
         </View>
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   const sessionCountLabel = statistics.meta.isTruncated ? "Recent sessions" : "Completed sessions";
 
   return (
-    <ScreenWrapper>
+    <Screen>
       <View className="gap-6">
         <View className="flex-row flex-wrap gap-3">
           <StatisticsSummaryCard
@@ -123,6 +123,6 @@ export function StatisticsScreen() {
           </View>
         </View>
       </View>
-    </ScreenWrapper>
+    </Screen>
   );
 }

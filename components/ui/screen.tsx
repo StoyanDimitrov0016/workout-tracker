@@ -3,12 +3,12 @@ import { ReactNode } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-interface ScreenWrapperProps {
+type ScreenProps = {
   children: ReactNode;
   scroll?: boolean;
-}
+};
 
-export function ScreenWrapper({ children, scroll = true }: ScreenWrapperProps) {
+export function Screen({ children, scroll = true }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const contentPadding = {

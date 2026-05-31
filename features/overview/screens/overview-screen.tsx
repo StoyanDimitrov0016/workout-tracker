@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { OverviewScreenSkeleton, SkeletonBlock } from "@/components/feedback/loading-skeleton";
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import { OverviewMetricCard } from "@/features/overview/components/overview-metric-card";
 import { OverviewSplitDayCard } from "@/features/overview/components/overview-split-day-card";
 import { useOverviewData } from "@/features/overview/hooks/use-overview-data";
@@ -27,15 +27,15 @@ export function OverviewScreen() {
 
   if (isLoading) {
     return (
-      <ScreenWrapper>
+      <Screen>
         <OverviewScreenSkeleton />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   if (!split) {
     return (
-      <ScreenWrapper>
+      <Screen>
         <View className="flex-1 items-center justify-center gap-4">
           <Text className="text-xl font-semibold text-text-primary">Create your plan</Text>
           <Pressable
@@ -45,7 +45,7 @@ export function OverviewScreen() {
             <Text className="font-semibold text-white">Create split</Text>
           </Pressable>
         </View>
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
@@ -55,7 +55,7 @@ export function OverviewScreen() {
     : "Completed sessions";
 
   return (
-    <ScreenWrapper>
+    <Screen>
       <View className="gap-4">
         <View className="gap-1">
           <Text className="text-2xl font-semibold text-text-primary">{split.name}</Text>
@@ -220,6 +220,6 @@ export function OverviewScreen() {
           </View>
         ) : null}
       </View>
-    </ScreenWrapper>
+    </Screen>
   );
 }

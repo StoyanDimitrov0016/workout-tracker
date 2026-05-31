@@ -1,7 +1,7 @@
 import { Stack, useRouter } from "expo-router";
 import { SplitBuilderSkeleton } from "@/components/feedback/loading-skeleton";
 import { RouteErrorBoundary } from "@/components/feedback/route-error-boundary";
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import { SplitBuilder } from "@/features/splits/components/split-builder";
 import { splitResource } from "@/features/splits/data/split-resource";
 
@@ -13,20 +13,20 @@ export default function TrainingSplitCreate() {
 
   if (split === undefined) {
     return (
-      <ScreenWrapper scroll={false}>
+      <Screen scroll={false}>
         <SplitBuilderSkeleton />
-      </ScreenWrapper>
+      </Screen>
     );
   }
 
   return (
-    <ScreenWrapper scroll={false}>
+    <Screen scroll={false}>
       <Stack.Screen options={{ title: "Create plan" }} />
       <SplitBuilder
         initialSplit={split}
         submitLabel="Save split"
         onSaved={() => router.replace("/training-split")}
       />
-    </ScreenWrapper>
+    </Screen>
   );
 }

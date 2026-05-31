@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { View } from "react-native";
 
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import {
   MeasurementsSwitch,
   type MeasurementView,
@@ -17,7 +17,7 @@ export function MeasurementsScreen({ initialView = "weight" }: MeasurementsScree
   const [activeView, setActiveView] = useState<MeasurementView>(initialView);
 
   return (
-    <ScreenWrapper>
+    <Screen>
       <View className="gap-5 pb-4 pt-1">
         <MeasurementsSwitch activeView={activeView} onViewChange={setActiveView} />
         {activeView === "weight" ? (
@@ -26,6 +26,6 @@ export function MeasurementsScreen({ initialView = "weight" }: MeasurementsScree
           <MeasurementsCircumferencesScreen />
         )}
       </View>
-    </ScreenWrapper>
+    </Screen>
   );
 }

@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { StatisticsHistoryScreenSkeleton } from "@/components/feedback/loading-skeleton";
 import { ScreenStateMessage } from "@/components/feedback/screen-state-message";
-import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
+import { Screen } from "@/components/ui/screen";
 import { HistorySessionCard } from "@/features/statistics/components/history-session-card";
 import {
   statisticsResource,
@@ -17,7 +17,7 @@ export default function WorkoutHistoryScreen() {
   const history = statisticsResource.useHistory();
 
   return (
-    <ScreenWrapper>
+    <Screen>
       {history.status === "LoadingFirstPage" ? (
         <StatisticsHistoryScreenSkeleton />
       ) : history.results.length === 0 ? (
@@ -60,6 +60,6 @@ export default function WorkoutHistoryScreen() {
           ) : null}
         </View>
       )}
-    </ScreenWrapper>
+    </Screen>
   );
 }
