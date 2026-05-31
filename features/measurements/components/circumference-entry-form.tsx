@@ -1,7 +1,8 @@
-import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 
+import { Button } from "@/components/ui/button";
+import { InputNumber } from "@/components/ui/input-number";
 import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import {
   CircumferenceMapper,
@@ -14,6 +15,7 @@ import {
 } from "@/features/measurements/constants/circumference-fields";
 import { CircumferenceSchema } from "@/features/measurements/schemas/circumference-schema";
 import { useToast } from "@/hooks/use-toast";
+import { formatMeasurementValue } from "@/utils/format/measurement";
 
 const defaultValues = CircumferenceMapper.toFormValues(null);
 const fieldGroups: Array<{
@@ -46,50 +48,37 @@ const fieldGroups: Array<{
 type MeasurementFieldProps = {
   control: ReturnType<typeof useForm<CircumferenceFormValues>>["control"];
   errorMessage?: string;
-  inputClassName: string;
   name: keyof CircumferenceFormValues;
   onEdit: (name: keyof CircumferenceFormValues) => void;
   label: string;
 };
 
-function FieldLabel({ text }: { text: string }) {
-  return <Text className="text-xs text-text-secondary">{text}</Text>;
-}
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null;
-  return <Text className="text-xs text-status-error">{message}</Text>;
-}
-
 function MeasurementField({
   control,
   errorMessage,
-  inputClassName,
   label,
   name,
   onEdit,
 }: MeasurementFieldProps) {
   return (
-    <View className="flex-1 gap-2">
-      <FieldLabel text={label} />
+    <View className="flex-1">
       <Controller
         control={control}
         name={name}
         render={({ field: { onBlur, onChange, value } }) => (
-          <TextInput
+          <InputNumber
+            label={label}
             value={value}
-            onChangeText={(text) => {
+            onChangeNumber={(nextValue) => {
               onEdit(name);
-              onChange(text);
+              onChange(nextValue);
             }}
             onBlur={onBlur}
-            keyboardType="decimal-pad"
-            className={inputClassName}
-            placeholderTextColor="#9ca3af"
+            formatValue={formatMeasurementValue}
+            error={errorMessage}
           />
         )}
       />
-      <FieldError message={errorMessage} />
     </View>
   );
 }
@@ -141,11 +130,6 @@ export function CircumferenceEntryForm() {
     }
   };
 
-  const inputClassName = useMemo(
-    () => "rounded-xl border border-border px-3 py-3 text-text-primary",
-    []
-  );
-
   return (
     <View className="gap-4 rounded-2xl border border-border bg-surface p-4">
       <Text className="text-lg font-semibold text-text-primary">Log circumferences</Text>
@@ -160,7 +144,6 @@ export function CircumferenceEntryForm() {
                   key={fieldName}
                   control={control}
                   errorMessage={errors[fieldName]?.message}
-                  inputClassName={inputClassName}
                   label={circumferenceLabels[fieldName]}
                   name={fieldName}
                   onEdit={clearFeedback}
@@ -171,15 +154,11 @@ export function CircumferenceEntryForm() {
         </View>
       ))}
 
-      <Pressable
+      <Button
         onPress={handleSubmit(onSubmit)}
-        disabled={isSubmitting}
-        className={`rounded-xl py-3 ${isSubmitting ? "bg-primary/60" : "bg-primary"}`}
-      >
-        <Text className="text-center font-semibold text-white">
-          {isSubmitting ? "Saving..." : "Save measurements"}
-        </Text>
-      </Pressable>
+        loading={isSubmitting}
+        label={isSubmitting ? "Saving..." : "Save measurements"}
+      />
     </View>
   );
 }

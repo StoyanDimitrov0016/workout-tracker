@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 
+import { Button } from "@/components/ui/button";
+import { InputNumber } from "@/components/ui/input-number";
 import { WeightEntryAdjuster } from "@/features/measurements/components/weight-entry-adjuster";
 import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import {
@@ -28,7 +30,7 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
     setValue,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<WeightEntryFormValues>({
-    defaultValues: { weightKg: "" },
+    defaultValues: WeightEntryMapper.toFormValues(null),
   });
 
   const [deltaKg, setDeltaKg] = useState(0);
@@ -36,7 +38,7 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
   useEffect(() => {
     if (latestWeightKg === null || isDirty) return;
 
-    setValue("weightKg", formatWeightKg(latestWeightKg), { shouldDirty: false });
+    setValue("weightKg", latestWeightKg, { shouldDirty: false });
     setDeltaKg(0);
   }, [latestWeightKg, isDirty, setValue]);
 
@@ -46,7 +48,7 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
     const nextValue = clampWeight(latestWeightKg + delta);
     clearErrors("weightKg");
     setDeltaKg(delta);
-    setValue("weightKg", formatWeightKg(nextValue), { shouldDirty: true });
+    setValue("weightKg", nextValue, { shouldDirty: true });
   };
 
   const onSubmit = async (values: WeightEntryFormValues) => {
@@ -80,18 +82,17 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
         control={control}
         name="weightKg"
         render={({ field: { onBlur, onChange, value } }) => (
-          <TextInput
-            value={value ?? ""}
-            onChangeText={(text) => {
+          <InputNumber
+            value={value}
+            onChangeNumber={(nextValue) => {
               clearErrors("weightKg");
               setDeltaKg(0);
-              onChange(text);
+              onChange(nextValue);
             }}
             onBlur={onBlur}
             placeholder="Enter your weight"
-            keyboardType="decimal-pad"
-            className="rounded-xl border border-border px-3 py-3 text-text-primary"
-            placeholderTextColor="#9ca3af"
+            formatValue={formatWeightKg}
+            error={errors.weightKg?.message}
           />
         )}
       />
@@ -100,18 +101,11 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
         deltaKg={deltaKg}
         onDeltaChange={handleDeltaChange}
       />
-      {errors.weightKg ? (
-        <Text className="text-sm text-status-error">{errors.weightKg.message}</Text>
-      ) : null}
-      <Pressable
+      <Button
         onPress={handleSubmit(onSubmit)}
-        disabled={isSubmitting}
-        className={`rounded-xl py-3 ${isSubmitting ? "bg-primary/60" : "bg-primary"}`}
-      >
-        <Text className="text-center font-semibold text-white">
-          {isSubmitting ? "Saving..." : "Save entry"}
-        </Text>
-      </Pressable>
+        loading={isSubmitting}
+        label={isSubmitting ? "Saving..." : "Save entry"}
+      />
     </View>
   );
 }
