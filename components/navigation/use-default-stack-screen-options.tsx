@@ -17,29 +17,18 @@ export function useDefaultStackScreenOptions(): NativeStackNavigationOptions {
 
   return useMemo(() => {
     const backgroundColor = isDark ? "rgb(17 24 39)" : "rgb(255 255 255)";
-    const borderColor = isDark ? "rgb(55 65 81)" : "rgb(229 231 235)";
     const tintColor = isDark ? "rgb(243 244 246)" : "rgb(17 24 39)";
 
     const options: NativeStackNavigationOptions = {
       headerTitleAlign: "left",
+      headerTransparent: false,
       headerStyle: {
         backgroundColor,
       },
-      headerBackground: () => (
-        <View
-          pointerEvents="none"
-          style={{
-            flex: 1,
-            backgroundColor,
-            borderBottomColor: borderColor,
-            borderBottomWidth: 1,
-          }}
-        />
-      ),
       headerTintColor: tintColor,
       headerBackButtonDisplayMode: "minimal",
       headerTitleStyle: { color: tintColor, fontWeight: "600" },
-      headerShadowVisible: false,
+      headerShadowVisible: true,
       headerRight: () => (
         <View style={{ paddingRight: 12, paddingVertical: 6 }}>
           <AppHeaderActions onPress={() => router.push("/(modals)/account")} />
