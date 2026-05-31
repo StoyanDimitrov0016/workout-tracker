@@ -1,5 +1,1 @@
-export {
-  formatDurationMs,
-  formatStatNumber,
-  formatVolumeKg,
-} from "@/utils/format/stat";
+export { formatDurationMs, formatStatNumber, formatVolumeKg } from "@/utils/format/stat";

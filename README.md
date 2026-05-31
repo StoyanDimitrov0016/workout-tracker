@@ -66,7 +66,7 @@ The app expects these values in `.env.local`:
 - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`
 - `EXPO_PUBLIC_CONVEX_SITE_URL`
 
-Use [.env.example](/Users/stoyan.dim/repositories/workout-tracker/.env.example) as the template.
+Use [.env.example](.env.example) as the template.
 
 ## Development Commands
 
@@ -78,11 +78,11 @@ npm run format:check
 
 ## Project Structure
 
-- [app](/Users/stoyan.dim/repositories/workout-tracker/app): Expo Router screens and layouts
-- [features](/Users/stoyan.dim/repositories/workout-tracker/features): domain features such as splits, sessions, measurements, overview, and statistics
-- [components](/Users/stoyan.dim/repositories/workout-tracker/components): shared UI building blocks
-- [convex](/Users/stoyan.dim/repositories/workout-tracker/convex): backend schema, queries, and mutations
-- [docs](/Users/stoyan.dim/repositories/workout-tracker/docs): planning notes and follow-up docs
+- [app](app): Expo Router screens and layouts
+- [features](features): domain features such as splits, sessions, measurements, overview, and statistics
+- [components](components): shared UI building blocks
+- [convex](convex): backend schema, queries, and mutations
+- [docs](docs): planning notes and follow-up docs
 
 ## Notes
 

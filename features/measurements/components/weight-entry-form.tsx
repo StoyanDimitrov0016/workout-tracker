@@ -97,7 +97,7 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
               onChange(text);
             }}
             onBlur={onBlur}
-            placeholder="enter your weigh"
+            placeholder="Enter your weight"
             keyboardType="decimal-pad"
             className="rounded-xl border border-border px-3 py-3 text-text-primary"
             placeholderTextColor="#9ca3af"
@@ -115,9 +115,7 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
       {saveErrorMessage ? (
         <MeasurementSaveFeedback kind="error" message={saveErrorMessage} />
       ) : null}
-      {successMessage ? (
-        <MeasurementSaveFeedback kind="success" message={successMessage} />
-      ) : null}
+      {successMessage ? <MeasurementSaveFeedback kind="success" message={successMessage} /> : null}
       <Pressable
         onPress={handleSubmit(onSubmit)}
         disabled={isSubmitting}

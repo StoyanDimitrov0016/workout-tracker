@@ -86,11 +86,17 @@ export const getTrend = query({
 
     const minWeightKg =
       orderedEntries.length > 0
-        ? orderedEntries.reduce((min, entry) => Math.min(min, entry.weightKg), orderedEntries[0]!.weightKg)
+        ? orderedEntries.reduce(
+            (min, entry) => Math.min(min, entry.weightKg),
+            orderedEntries[0]!.weightKg
+          )
         : null;
     const maxWeightKg =
       orderedEntries.length > 0
-        ? orderedEntries.reduce((max, entry) => Math.max(max, entry.weightKg), orderedEntries[0]!.weightKg)
+        ? orderedEntries.reduce(
+            (max, entry) => Math.max(max, entry.weightKg),
+            orderedEntries[0]!.weightKg
+          )
         : null;
 
     return {

@@ -5,10 +5,7 @@ type MeasurementSaveFeedbackProps = {
   message: string;
 };
 
-export function MeasurementSaveFeedback({
-  kind,
-  message,
-}: MeasurementSaveFeedbackProps) {
+export function MeasurementSaveFeedback({ kind, message }: MeasurementSaveFeedbackProps) {
   const containerClassName =
     kind === "error"
       ? "rounded-xl border border-status-error/20 bg-status-error/10 p-3"

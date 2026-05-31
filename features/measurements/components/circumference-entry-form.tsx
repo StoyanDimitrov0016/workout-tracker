@@ -16,6 +16,32 @@ import {
 import { CircumferenceSchema } from "@/features/measurements/schemas/circumference-schema";
 
 const defaultValues = CircumferenceMapper.toFormValues(null);
+const fieldGroups: Array<{
+  title?: string;
+  rows: Array<[CircumferenceField, CircumferenceField]>;
+}> = [
+  {
+    rows: [
+      ["neckCm", "chestCm"],
+      ["waistCm", "hipsCm"],
+    ],
+  },
+  {
+    title: "Arms",
+    rows: [
+      ["upperArmLeftCm", "upperArmRightCm"],
+      ["forearmLeftCm", "forearmRightCm"],
+    ],
+  },
+  {
+    title: "Legs",
+    rows: [["thighLeftCm", "thighRightCm"]],
+  },
+  {
+    title: "Calves",
+    rows: [["calfLeftCm", "calfRightCm"]],
+  },
+];
 
 type MeasurementFieldProps = {
   control: ReturnType<typeof useForm<CircumferenceFormValues>>["control"];
@@ -131,136 +157,31 @@ export function CircumferenceEntryForm() {
     <View className="gap-4 rounded-2xl border border-border bg-surface p-4">
       <Text className="text-lg font-semibold text-text-primary">Log circumferences</Text>
 
-      <View className="gap-3">
-        <View className="flex-row gap-3">
-          <MeasurementField
-            control={control}
-            errorMessage={errors.neckCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.neckCm}
-            name="neckCm"
-            onEdit={clearFeedback}
-          />
-          <MeasurementField
-            control={control}
-            errorMessage={errors.chestCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.chestCm}
-            name="chestCm"
-            onEdit={clearFeedback}
-          />
+      {fieldGroups.map((group, groupIndex) => (
+        <View key={group.title ?? "primary"} className="gap-3">
+          {group.title ? <Text className="text-xs text-text-secondary">{group.title}</Text> : null}
+          {group.rows.map((row, rowIndex) => (
+            <View key={`${groupIndex}-${rowIndex}`} className="flex-row gap-3">
+              {row.map((fieldName) => (
+                <MeasurementField
+                  key={fieldName}
+                  control={control}
+                  errorMessage={errors[fieldName]?.message}
+                  inputClassName={inputClassName}
+                  label={circumferenceLabels[fieldName]}
+                  name={fieldName}
+                  onEdit={clearFeedback}
+                />
+              ))}
+            </View>
+          ))}
         </View>
-
-        <View className="flex-row gap-3">
-          <MeasurementField
-            control={control}
-            errorMessage={errors.waistCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.waistCm}
-            name="waistCm"
-            onEdit={clearFeedback}
-          />
-          <MeasurementField
-            control={control}
-            errorMessage={errors.hipsCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.hipsCm}
-            name="hipsCm"
-            onEdit={clearFeedback}
-          />
-        </View>
-      </View>
-
-      <View className="gap-3">
-        <Text className="text-xs text-text-secondary">Arms</Text>
-        <View className="flex-row gap-3">
-          <MeasurementField
-            control={control}
-            errorMessage={errors.upperArmLeftCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.upperArmLeftCm}
-            name="upperArmLeftCm"
-            onEdit={clearFeedback}
-          />
-          <MeasurementField
-            control={control}
-            errorMessage={errors.upperArmRightCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.upperArmRightCm}
-            name="upperArmRightCm"
-            onEdit={clearFeedback}
-          />
-        </View>
-        <View className="flex-row gap-3">
-          <MeasurementField
-            control={control}
-            errorMessage={errors.forearmLeftCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.forearmLeftCm}
-            name="forearmLeftCm"
-            onEdit={clearFeedback}
-          />
-          <MeasurementField
-            control={control}
-            errorMessage={errors.forearmRightCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.forearmRightCm}
-            name="forearmRightCm"
-            onEdit={clearFeedback}
-          />
-        </View>
-      </View>
-
-      <View className="gap-3">
-        <Text className="text-xs text-text-secondary">Legs</Text>
-        <View className="flex-row gap-3">
-          <MeasurementField
-            control={control}
-            errorMessage={errors.thighLeftCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.thighLeftCm}
-            name="thighLeftCm"
-            onEdit={clearFeedback}
-          />
-          <MeasurementField
-            control={control}
-            errorMessage={errors.thighRightCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.thighRightCm}
-            name="thighRightCm"
-            onEdit={clearFeedback}
-          />
-        </View>
-      </View>
-
-      <View className="gap-3">
-        <Text className="text-xs text-text-secondary">Calves</Text>
-        <View className="flex-row gap-3">
-          <MeasurementField
-            control={control}
-            errorMessage={errors.calfLeftCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.calfLeftCm}
-            name="calfLeftCm"
-            onEdit={clearFeedback}
-          />
-          <MeasurementField
-            control={control}
-            errorMessage={errors.calfRightCm?.message}
-            inputClassName={inputClassName}
-            label={circumferenceLabels.calfRightCm}
-            name="calfRightCm"
-            onEdit={clearFeedback}
-          />
-        </View>
-      </View>
+      ))}
 
       {saveErrorMessage ? (
         <MeasurementSaveFeedback kind="error" message={saveErrorMessage} />
       ) : null}
-      {successMessage ? (
-        <MeasurementSaveFeedback kind="success" message={successMessage} />
-      ) : null}
+      {successMessage ? <MeasurementSaveFeedback kind="success" message={successMessage} /> : null}
 
       <Pressable
         onPress={handleSubmit(onSubmit)}

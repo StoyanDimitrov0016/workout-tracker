@@ -19,7 +19,10 @@ export { RouteErrorBoundary as ErrorBoundary };
 
 export default function WorkoutSummaryScreen() {
   const router = useRouter();
-  const sessionId = useValidatedLocalSearchParam("sessionId", ConvexIdParamSchema<"workoutSessions">());
+  const sessionId = useValidatedLocalSearchParam(
+    "sessionId",
+    ConvexIdParamSchema<"workoutSessions">()
+  );
   const reopenSession = workoutSessionResource.useReopen();
   const session = workoutSessionResource.useSummary(sessionId);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

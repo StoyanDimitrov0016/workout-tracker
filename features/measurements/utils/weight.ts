@@ -1,7 +1,4 @@
-import {
-  MAX_WEIGHT_KG,
-  MIN_WEIGHT_KG,
-} from "@/features/measurements/constants/weight";
+import { MAX_WEIGHT_KG, MIN_WEIGHT_KG } from "@/features/measurements/constants/weight";
 import { formatWeightKg } from "@/utils/format/weight";
 
 export function clampWeight(value: number) {

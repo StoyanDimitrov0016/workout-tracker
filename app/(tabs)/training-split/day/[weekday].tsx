@@ -38,7 +38,11 @@ export default function TrainingSplitDay() {
     return (
       <ScreenWrapper>
         <Stack.Screen options={{ title: weekdayToLabel(weekday) }} />
-        <ScreenStateMessage title="No plan yet" actionLabel="Create split" onAction={() => router.push("/training-split/create")} />
+        <ScreenStateMessage
+          title="No plan yet"
+          actionLabel="Create split"
+          onAction={() => router.push("/training-split/create")}
+        />
       </ScreenWrapper>
     );
   }

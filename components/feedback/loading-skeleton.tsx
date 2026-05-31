@@ -21,7 +21,11 @@ type SkeletonCardProps = {
 };
 
 function SkeletonCard({ children, className = "" }: SkeletonCardProps) {
-  return <View className={`gap-3 rounded-2xl border border-border bg-card p-4 ${className}`}>{children}</View>;
+  return (
+    <View className={`gap-3 rounded-2xl border border-border bg-card p-4 ${className}`}>
+      {children}
+    </View>
+  );
 }
 
 function SkeletonStatRow() {
@@ -37,7 +41,10 @@ function SkeletonMetricGrid() {
   return (
     <View className="flex-row flex-wrap gap-3">
       {Array.from({ length: 4 }).map((_, index) => (
-        <View key={index} className="min-w-36 flex-1 gap-3 rounded-2xl border border-border bg-card p-4">
+        <View
+          key={index}
+          className="min-w-36 flex-1 gap-3 rounded-2xl border border-border bg-card p-4"
+        >
           <SkeletonBlock width="44%" />
           <SkeletonBlock height={28} width="72%" />
         </View>
@@ -63,11 +70,7 @@ function SkeletonWorkoutCard() {
   );
 }
 
-export function SkeletonBlock({
-  height = 12,
-  style,
-  width = "100%",
-}: SkeletonBlockProps) {
+export function SkeletonBlock({ height = 12, style, width = "100%" }: SkeletonBlockProps) {
   const isDark = useColorScheme() === "dark";
   const opacity = useSharedValue(0.4);
 

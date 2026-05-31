@@ -42,15 +42,14 @@ export function TrainingSplitScreen() {
             <View className="gap-3">
               {WEEKDAYS.map((day) => {
                 const dayData = daysByWeekday.get(day.weekday);
-                const totals =
-                  dayData?.exercises.reduce(
-                    (acc, exercise) => {
-                      acc.sets += getSetCount(exercise.setTargets);
-                      acc.reps += getTotalReps(exercise.setTargets);
-                      return acc;
-                    },
-                    { sets: 0, reps: 0 }
-                  ) ?? { sets: 0, reps: 0 };
+                const totals = dayData?.exercises.reduce(
+                  (acc, exercise) => {
+                    acc.sets += getSetCount(exercise.setTargets);
+                    acc.reps += getTotalReps(exercise.setTargets);
+                    return acc;
+                  },
+                  { sets: 0, reps: 0 }
+                ) ?? { sets: 0, reps: 0 };
                 const summary = dayData
                   ? `${dayData.exercises.length} exercises | ${totals.sets} sets | ${totals.reps} reps`
                   : "";

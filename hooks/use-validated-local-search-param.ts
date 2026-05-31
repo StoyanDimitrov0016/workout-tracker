@@ -11,10 +11,7 @@ export function ConvexIdParamSchema<TableName extends TableNames>() {
 
 export const WeekdayParamSchema = z.coerce.number().int().min(1).max(7);
 
-export function useValidatedLocalSearchParam<Output>(
-  name: string,
-  schema: z.ZodType<Output>
-) {
+export function useValidatedLocalSearchParam<Output>(name: string, schema: z.ZodType<Output>) {
   const params = useLocalSearchParams() as Record<string, string | string[] | undefined>;
   const rawValue = params[name];
   const candidate = Array.isArray(rawValue) ? rawValue[0] : rawValue;

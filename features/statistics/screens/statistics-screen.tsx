@@ -70,7 +70,8 @@ export function StatisticsScreen() {
         </View>
         {statistics.meta.isTruncated ? (
           <Text className="text-xs text-text-tertiary">
-            Based on your most recent {formatStatNumber(statistics.meta.analyzedSessionCount)} completed workouts.
+            Based on your most recent {formatStatNumber(statistics.meta.analyzedSessionCount)}{" "}
+            completed workouts.
           </Text>
         ) : null}
 

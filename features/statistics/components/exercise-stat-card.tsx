@@ -49,7 +49,9 @@ export function ExerciseStatCard({
 
       <View className="flex-row items-center justify-between">
         <Text className="text-sm text-text-secondary">Volume</Text>
-        <Text className="text-sm font-semibold text-text-primary">{formatVolumeKg(totalVolumeKg)}</Text>
+        <Text className="text-sm font-semibold text-text-primary">
+          {formatVolumeKg(totalVolumeKg)}
+        </Text>
       </View>
     </View>
   );

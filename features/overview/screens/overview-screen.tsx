@@ -1,10 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-import {
-  OverviewScreenSkeleton,
-  SkeletonBlock,
-} from "@/components/feedback/loading-skeleton";
+import { OverviewScreenSkeleton, SkeletonBlock } from "@/components/feedback/loading-skeleton";
 import { ScreenWrapper } from "@/components/wrappers/screen-wrapper";
 import { OverviewMetricCard } from "@/features/overview/components/overview-metric-card";
 import { OverviewSplitDayCard } from "@/features/overview/components/overview-split-day-card";

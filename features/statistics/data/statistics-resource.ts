@@ -7,9 +7,13 @@ export const WORKOUT_HISTORY_PAGE_SIZE = 20;
 
 export const statisticsResource = {
   useHistory() {
-    return usePaginatedQuery(api.workoutSessions.listCompletedPaginated, {}, {
-      initialNumItems: WORKOUT_HISTORY_PAGE_SIZE,
-    });
+    return usePaginatedQuery(
+      api.workoutSessions.listCompletedPaginated,
+      {},
+      {
+        initialNumItems: WORKOUT_HISTORY_PAGE_SIZE,
+      }
+    );
   },
 
   useOverview() {
