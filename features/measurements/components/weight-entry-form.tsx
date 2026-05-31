@@ -3,7 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { InputNumber } from "@/components/ui/input-number";
+import { NumberInput } from "@/components/ui/number-input";
 import { WeightEntryAdjuster } from "@/features/measurements/components/weight-entry-adjuster";
 import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import {
@@ -82,7 +82,7 @@ export function WeightEntryForm({ latestWeightKg }: WeightEntryFormProps) {
         control={control}
         name="weightKg"
         render={({ field: { onBlur, onChange, value } }) => (
-          <InputNumber
+          <NumberInput
             value={value}
             onChangeNumber={(nextValue) => {
               clearErrors("weightKg");

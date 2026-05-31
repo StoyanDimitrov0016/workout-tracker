@@ -2,7 +2,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { InputNumber } from "@/components/ui/input-number";
+import { NumberInput } from "@/components/ui/number-input";
 import { measurementsResource } from "@/features/measurements/data/measurements-resource";
 import {
   CircumferenceMapper,
@@ -66,7 +66,7 @@ function MeasurementField({
         control={control}
         name={name}
         render={({ field: { onBlur, onChange, value } }) => (
-          <InputNumber
+          <NumberInput
             label={label}
             value={value}
             onChangeNumber={(nextValue) => {

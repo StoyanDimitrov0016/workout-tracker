@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Input, type InputProps } from "@/components/ui/input";
 import { NumberMapper } from "@/utils/form/number-mapper";
 
-type InputNumberProps = Omit<InputProps, "keyboardType" | "onChangeText" | "value"> & {
+type NumberInputProps = Omit<InputProps, "keyboardType" | "onChangeText" | "value"> & {
   value: number | null | undefined;
   onChangeNumber: (value: number | null) => void;
   formatValue?: (value: number) => string;
@@ -20,13 +20,13 @@ function formatDraftValue(value: number | null | undefined, formatValue: (value:
   return formatValue(value);
 }
 
-export function InputNumber({
+export function NumberInput({
   value,
   onChangeNumber,
   formatValue = defaultFormatValue,
   onBlur,
   ...props
-}: InputNumberProps) {
+}: NumberInputProps) {
   const [draftValue, setDraftValue] = useState(() => formatDraftValue(value, formatValue));
 
   useEffect(() => {
