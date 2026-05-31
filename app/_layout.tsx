@@ -13,6 +13,7 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 
+import { getNavigationColors } from "@/constants/navigation";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export const unstable_settings = { anchor: "(tabs)" };
@@ -25,6 +26,8 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
 
 function RootNavigator() {
   const { isLoaded, isSignedIn } = useAuth();
+  const colorScheme = useColorScheme();
+  const { backgroundColor } = getNavigationColors(colorScheme === "dark");
 
   useEffect(() => {
     if (!isLoaded) {
@@ -39,7 +42,7 @@ function RootNavigator() {
   }
 
   return (
-    <Stack>
+    <Stack screenOptions={{ contentStyle: { backgroundColor } }}>
       <Stack.Protected guard={isSignedIn}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(modals)" options={{ headerShown: false }} />

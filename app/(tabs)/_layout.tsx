@@ -4,6 +4,7 @@ import React from "react";
 import { useColorScheme } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
+import { getNavigationColors } from "@/constants/navigation";
 
 /**
  * Tabs should own ONLY the bottom tab bar.
@@ -12,18 +13,22 @@ import { HapticTab } from "@/components/haptic-tab";
 export default function TabLayout() {
   const isDark = useColorScheme() === "dark";
   const router = useRouter();
+  const { backgroundColor, borderColor, tabActiveTintColor, tabInactiveTintColor } =
+    getNavigationColors(isDark);
 
   return (
     <Tabs
       initialRouteName="overview"
       screenOptions={{
+        lazy: false,
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarActiveTintColor: isDark ? "rgb(248 113 113)" : "rgb(239 68 68)",
-        tabBarInactiveTintColor: isDark ? "rgb(107 114 128)" : "rgb(156 163 175)",
+        sceneStyle: { backgroundColor },
+        tabBarActiveTintColor: tabActiveTintColor,
+        tabBarInactiveTintColor: tabInactiveTintColor,
         tabBarStyle: {
-          backgroundColor: isDark ? "rgb(17 24 39)" : "rgb(255 255 255)",
-          borderTopColor: isDark ? "rgb(55 65 81)" : "rgb(229 231 235)",
+          backgroundColor,
+          borderTopColor: borderColor,
           borderTopWidth: 1,
         },
       }}
